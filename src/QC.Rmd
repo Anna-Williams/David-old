@@ -10,6 +10,7 @@ output: html_document
 library(here) # for reproducible paths
 library(SingleCellExperiment)
 library(scater) # For qc
+library(org.Mm.eg.db) # To annotate the genenames
 ```
 ```{r}
 sce <- readRDS(here("processed", "sce.RDS"))
@@ -23,4 +24,29 @@ keep_feature <- rowSums(counts(sce) > 0) > 0
 sce <- sce[keep_feature, ]
 genes_beforeqc -dim(sce)[1] 
 ```
+6511 cells are not expressed in any cell. 
+
+
+# Add cell QC metrics to the sce
+
+First are sorted the genenames and gene symbols, because the default ensembl notation is not very handy. And then save the  mitochondrial genes as such.
+```{r}
+# obtain full genenames
+genename <- mapIds(org.Mm.eg.db, keys = rownames(sce), keytype = "ENSEMBL", column = c("GENENAME"))
+# Use the symbols as rownames
+# first make gene names unique ( LUISE IS GOING TO LOVE this function!!!) 
+# gene Ptp4a1, line 116 was duplicate for example
+symb_unique <- uniquifyFeatureNames(rownames(sce), rowData(sce)[, "Symbol"])
+# Now they can be used as rownames
+rownames(sce) <- symb_unique
+# Add full gene names and the uniuqe symbols to the rowdata
+rowData(sce)$symb_uniq <- symb_unique
+rowData(sce)$gene_name <- genename
+# Subset the mitochondrial genes
+is_mito <- grepl("^mt-", rownames(sce))
+```
+Then we can use the scater package to add the quality per feature and per cell
+
+
+# Plots before QC
 
