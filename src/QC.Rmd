@@ -52,7 +52,7 @@ sce <- addPerCellQC(sce, subsets = list(mt=is_mito))
 outlier_lib_low <- isOutlier(sce$total, log = TRUE, type = "lower")
 outlier_expr_low <-
   isOutlier(sce$detected, log = TRUE, type = "lower")
-outlier_lib_high <- isOutlier(sce$total, log = TRUE, type = "higher")
+outlier_lib_high <- isOutlier(sce$total, type = "higher")
 outlier_expr_high <-
   isOutlier(sce$detected, log = TRUE, type = "higher")
 outlier_mt <- isOutlier(sce$subsets_mt_percent, type = "higher")
