@@ -79,6 +79,10 @@ attr(outlier_mt, "thresholds")
 # TODO do the analysis separating by batch?
 # Add if it is an outlier to the metadata
 sce$outlier <- outlier
+
+# Save the object at this stage with the label "preliminary analysis" 
+# As only annotation addition has been done, without deleting anything yet.
+saveRDS(sce, here("processed", "sce_preliminary.RDS"))
 ```
 
 
