@@ -6,13 +6,13 @@ output: html_document
 ---
 
 # Set-up
-```{r}
+```{r set-up}
 library(here) # for reproducible paths
 library(SingleCellExperiment)
 library(scater) # For qc
 library(org.Mm.eg.db) # To annotate the genenames
 ```
-```{r}
+```{r load-sce}
 sce <- readRDS(here("processed", "sce.RDS"))
 ```
 
@@ -30,7 +30,7 @@ genes_beforeqc -dim(sce)[1]
 # Add cell QC metrics to the sce
 
 First are sorted the genenames and gene symbols, because the default ensembl notation is not very handy. And then save the  mitochondrial genes as such.
-```{r}
+```{r gene-names}
 # obtain full genenames
 genename <- mapIds(org.Mm.eg.db, keys = rownames(sce), keytype = "ENSEMBL", column = c("GENENAME"))
 # Use the symbols as rownames
