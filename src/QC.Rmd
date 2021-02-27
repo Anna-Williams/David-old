@@ -85,10 +85,41 @@ sce$outlier <- outlier
 saveRDS(sce, here("processed", "sce_preliminary.RDS"))
 ```
 
-
+# TODO: add only compute if not saved ^
 # Plots before QC
 
-Diagnostic plots to visualize the data distribution
-TODO: violins: detected, counts, mt, 
+Diagnostic plots to visualize the data distribution.
+
+### Violin plots
+
+```{r}
+plotColData(sce, x="Sample", y="sum", colour_by="outlier") + 
+  ggtitle("Total count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plotColData(sce, x="Sample", y="sum", colour_by="outlier") + 
+  scale_y_log10() + ggtitle("Total count log scale") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+```{r}
+plotColData(sce, x="Sample", y="detected", colour_by="outlier") + 
+  scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+```{r}
+plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="outlier") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+### Histograms
+```{r}
+hist(
+    sce$total,
+    breaks = 100
+)
+hist(
+    sce$detected,
+    breaks = 100
+)
+```
+
+TODO: 
 scatterplots:featurevsmt, featurevssum
-histograms:low and hight zooms
+pca
