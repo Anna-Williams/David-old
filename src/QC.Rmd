@@ -31,6 +31,7 @@ genes_beforeqc -dim(sce)[1]
 
 First are sorted the genenames and gene symbols, because the default ensembl notation is not very handy. And then save the  mitochondrial genes as such.
 ```{r gene-names}
+if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 # obtain full genenames
 genename <- mapIds(org.Mm.eg.db, keys = rownames(sce), keytype = "ENSEMBL", column = c("GENENAME"))
 # Use the symbols as rownames
@@ -44,9 +45,11 @@ rowData(sce)$symb_uniq <- symb_unique
 rowData(sce)$gene_name <- genename
 # Subset the mitochondrial genes
 is_mito <- grepl("^mt-", rownames(sce))
+}
 ```
 Then we can use the scater package to add the quality per cell
 ```{r addQC}
+if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 sce <- addPerCellQC(sce, subsets = list(mt=is_mito))
 # Automated outlier detection
 outlier_lib_low <- isOutlier(sce$total, log = TRUE, type = "lower")
@@ -83,9 +86,11 @@ sce$outlier <- outlier
 # Save the object at this stage with the label "preliminary analysis" 
 # As only annotation addition has been done, without deleting anything yet.
 saveRDS(sce, here("processed", "sce_preliminary.RDS"))
+}else{
+  sce <- readRDS(here("processed", "sce_preliminary.RDS"))
+}
 ```
 
-# TODO: add only compute if not saved ^
 # Plots before QC
 
 Diagnostic plots to visualize the data distribution.
