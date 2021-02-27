@@ -6,7 +6,7 @@ output: html_document
 ---
 
 # Set-up
-```{r set-up}
+```{r set-up, message=FALSE, warning=FALSE}
 library(here) # for reproducible paths
 library(SingleCellExperiment)
 library(scater) # For qc
@@ -18,7 +18,7 @@ sce <- readRDS(here("processed", "sce.RDS"))
 
 # Gene QC
 We start by removing genes not expressed in any cell
-```{r}
+```{r gene-qc}
 genes_beforeqc <- dim(sce)[1]
 keep_feature <- rowSums(counts(sce) > 0) > 0
 sce <- sce[keep_feature, ]
