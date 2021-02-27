@@ -1,0 +1,47 @@
+---
+title: "Gene and Cell QC"
+author: "NadineBestard"
+date: "27/02/2021"
+output: html_document
+---
+
+# Set-up
+```{r}
+library(here) # for reproducible paths
+library(SingleCellExperiment)
+library(scater) # For qc
+```
+```{r}
+sce <- readRDS(here("processed", "sce.RDS"))
+```
+
+# Gene QC
+We start by removing genes not expressed in any cell
+```{r}
+genes_beforeqc <- dim(sce)[1]
+keep_feature <- rowSums(counts(sce) > 0) > 0
+sce <- sce[keep_feature, ]
+genes_beforeqc -dim(sce)[1] 
+```
+
+# add example for Nina
+```{r}
+# Create a small matirx to visualize how it works
+counts_sce_small <- as.matrix(counts(sce)[1:3,1:5])
+# Replace one of the values by a greater number to better exemplify concepts
+counts_sce_small[2,2] <- 3
+counts_sce_small
+# visualize what the "counts(sce) > 0" would do
+counts_sce_small > 0 # Selects only gene counts greater than 0
+counts_sce_small > 2 # Selects only genes with counts greater than 2
+
+# Visualize what would the rowSums() does
+rowSums(counts_sce_small > 0) # Sums the "TRUE" values from the rows, so counts +1 for each cell that meets the condition
+
+# Now by setting the second condition we can select the number of cells that follow the conditon
+rowSums(counts_sce_small > 0) > 0 #  keep gene present in at least 1 cell
+rowSums(counts_sce_small > 0) >= 2 #  keep gene present in 2 cells or more
+
+
+```
+
