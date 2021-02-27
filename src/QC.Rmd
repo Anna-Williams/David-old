@@ -120,6 +120,11 @@ hist(
 )
 ```
 
+```{r}
+plotColData(sce, x="sum", y="subsets_mt_percent", colour_by="outlier")
+plotColData(sce, x="sum", y="detected", colour_by="outlier")
+plotColData(sce, x="sum", y="detected", colour_by="Sample")
+```
+
 TODO: 
-scatterplots:featurevsmt, featurevssum
 pca
