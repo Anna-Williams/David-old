@@ -35,8 +35,8 @@ if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 # obtain full genenames
 genename <- mapIds(org.Mm.eg.db, keys = rownames(sce), keytype = "ENSEMBL", column = c("GENENAME"))
 # Use the symbols as rownames
-# first make gene names unique ( LUISE IS GOING TO LOVE this function!!!) 
-# gene Ptp4a1, line 116 was duplicate for example
+# first make gene names unique 
+# TODO: save duplicate gene name list
 symb_unique <- uniquifyFeatureNames(rownames(sce), rowData(sce)[, "Symbol"])
 # Now they can be used as rownames
 rownames(sce) <- symb_unique
