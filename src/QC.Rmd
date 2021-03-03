@@ -48,6 +48,7 @@ is_mito <- grepl("^mt-", rownames(sce))
 }
 ```
 Then we can use the scater package to add the quality per cell
+## First try log for low thresholds but not for high. In low this prevents negative thresholds
 ```{r addQC}
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 sce <- addPerCellQC(sce, subsets = list(mt=is_mito))
@@ -57,7 +58,7 @@ outlier_expr_low <-
   isOutlier(sce$detected, log = TRUE, type = "lower")
 outlier_lib_high <- isOutlier(sce$total, type = "higher")
 outlier_expr_high <-
-  isOutlier(sce$detected, log = TRUE, type = "higher")
+  isOutlier(sce$detected, type = "higher")
 outlier_mt <- isOutlier(sce$subsets_mt_percent, type = "higher")
 # total
 outlier <-

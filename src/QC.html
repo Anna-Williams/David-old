@@ -196,8 +196,8 @@ genes_beforeqc -dim(sce)[1] </code></pre>
 # obtain full genenames
 genename &lt;- mapIds(org.Mm.eg.db, keys = rownames(sce), keytype = &quot;ENSEMBL&quot;, column = c(&quot;GENENAME&quot;))
 # Use the symbols as rownames
-# first make gene names unique ( LUISE IS GOING TO LOVE this function!!!) 
-# gene Ptp4a1, line 116 was duplicate for example
+# first make gene names unique 
+# TODO: save duplicate gene name list
 symb_unique &lt;- uniquifyFeatureNames(rownames(sce), rowData(sce)[, &quot;Symbol&quot;])
 # Now they can be used as rownames
 rownames(sce) &lt;- symb_unique
@@ -207,7 +207,8 @@ rowData(sce)$gene_name &lt;- genename
 # Subset the mitochondrial genes
 is_mito &lt;- grepl(&quot;^mt-&quot;, rownames(sce))
 }</code></pre>
-<p>Then we can use the scater package to add the quality per cell</p>
+<pre><code>## &#39;select()&#39; returned 1:many mapping between keys and columns</code></pre>
+<p>Then we can use the scater package to add the quality per cell ## First try log for low thresholds but not for high. In low this prevents negative thresholds</p>
 <pre class="r"><code>if(!file.exists(here(&quot;processed&quot;, &quot;sce_preliminary.RDS&quot;))){
 sce &lt;- addPerCellQC(sce, subsets = list(mt=is_mito))
 # Automated outlier detection
@@ -216,7 +217,7 @@ outlier_expr_low &lt;-
   isOutlier(sce$detected, log = TRUE, type = &quot;lower&quot;)
 outlier_lib_high &lt;- isOutlier(sce$total, type = &quot;higher&quot;)
 outlier_expr_high &lt;-
-  isOutlier(sce$detected, log = TRUE, type = &quot;higher&quot;)
+  isOutlier(sce$detected, type = &quot;higher&quot;)
 outlier_mt &lt;- isOutlier(sce$subsets_mt_percent, type = &quot;higher&quot;)
 # total
 outlier &lt;-
