@@ -86,9 +86,6 @@ attr(outlier_mt, "thresholds")
 # Add if it is an outlier to the metadata
 sce$outlier <- outlier
 
-# Save the object at this stage with the label "preliminary analysis" 
-# As only annotation addition has been done, without deleting anything yet.
-saveRDS(sce, here("processed", "sce_preliminary.RDS"))
 }else{
   sce <- readRDS(here("processed", "sce_preliminary.RDS"))
 }
@@ -149,4 +146,23 @@ plotReducedDim(sce, dimred="PCA_coldata", colour_by = "Sample")
 sce$chip <- as.character(sce$chip)
 plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
 ```
+
+
+## Ratio between sum and gene counts
+
+```{r}
+if(!file.exists(here("processed", "sce_preliminary.RDS"))){
+sce$ratio_detected_sum <- sce$detected/sce$sum
+
+# Save the object at this stage with the label "preliminary analysis" 
+# As only annotation addition has been done, without deleting anything yet.
+saveRDS(sce, here("processed", "sce_preliminary.RDS"))
+}else{
+  sce <- readRDS(here("processed", "sce_preliminary.RDS"))
+}
+
+summary(sce$ratio_detected_sum)
+plotColData(sce, x="sum", y="detected", colour_by="ratio_detected_sum")
+```
+
 
