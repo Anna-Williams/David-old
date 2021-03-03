@@ -127,8 +127,12 @@ hist(
     sce$detected,
     breaks = 100
 )
+hist(
+    sce$subsets_mt_percent,
+    breaks = 100
+)
 ```
-
+### Scatter plots
 ```{r}
 plotColData(sce, x="sum", y="subsets_mt_percent", colour_by="outlier")
 plotColData(sce, x="sum", y="detected", colour_by="outlier")
@@ -138,10 +142,9 @@ plotColData(sce, x="sum", y="detected", colour_by="Sample")
 ### PCA
 
  Here we run a PCA using the information in the metadata instead of the gene expression.
- It is usefull to visualize the QC parametres.  
+ It is useful to visualize the QC parametres.  
 ```{r PCA}
 sce <- runColDataPCA(sce,  variables = c("sum","detected", "subsets_mt_percent"))
-plotReducedDim(sce, dimred="PCA_coldata", colour_by = "outlier")
 plotReducedDim(sce, dimred="PCA_coldata", colour_by = "Sample")
 sce$chip <- as.character(sce$chip)
 plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
