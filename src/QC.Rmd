@@ -48,30 +48,37 @@ is_mito <- grepl("^mt-", rownames(sce))
 }
 ```
 Then we can use the scater package to add the quality per cell
-
+## First try log for low thresholds but not for high. In low this prevents negative thresholds
 ```{r addQC}
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 sce <- addPerCellQC(sce, subsets = list(mt=is_mito))
 # Automated outlier detection
-outlier_lib <- isOutlier(sce$total, log = TRUE, type = "both")
-outlier_expr <- isOutlier(sce$sum, log = TRUE, type = "both")
+outlier_lib_low <- isOutlier(sce$total, log = TRUE, type = "lower")
+outlier_expr_low <-
+  isOutlier(sce$detected, log = TRUE, type = "lower")
+outlier_lib_high <- isOutlier(sce$total, type = "higher")
+outlier_expr_high <-
+  isOutlier(sce$detected, type = "higher")
 outlier_mt <- isOutlier(sce$subsets_mt_percent, type = "higher")
 # total
 outlier <-
-  outlier_lib |
-  outlier_expr | 
-  outlier_mt
+  outlier_lib_low |
+  outlier_expr_low |
+  outlier_lib_high | outlier_expr_high | outlier_mt
 # See how many cells are detected as outliers
 DataFrame(
-  lib_size = sum(outlier_lib),
-  expression = sum(outlier_expr),
+  lib_size_high = sum(outlier_lib_high),
+  expression_high = sum(outlier_expr_high),
+  lib_size_low = sum(outlier_lib_low),
+  expression_low = sum(outlier_expr_low),
   mt_pct = sum(outlier_mt),
   total = sum(outlier)
 )
 # And the thresholds
-
-attr(outlier_lib, "thresholds")
-attr(outlier_expr, "thresholds")
+attr(outlier_lib_high, "thresholds")
+attr(outlier_expr_high, "thresholds")
+attr(outlier_lib_low, "thresholds")
+attr(outlier_expr_low, "thresholds")
 attr(outlier_mt, "thresholds")
 # TODO do the analysis separating by batch?
 # Add if it is an outlier to the metadata
@@ -140,5 +147,4 @@ plotReducedDim(sce, dimred="PCA_coldata", colour_by = "Sample")
 sce$chip <- as.character(sce$chip)
 plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
 ```
-
 
