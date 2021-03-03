@@ -151,12 +151,17 @@ plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
 ```
 
 
-## Ratio between sum and gene counts
 
+
+### Ratio between sum and gene counts
+This measures will probably very useful to get rid of these cells that have low gene counts but a relatively high umi count.
+The isoutlier function did not work very well with the sum of umi and the detected 
+genes. This function expects roughly a normal distribution. Bellow we try with the ratio
+between these two parametres, that do follow a normal distribution. 
 ```{r}
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 sce$ratio_detected_sum <- sce$detected/sce$sum
-
+sce$outlier_ratio <- isOutlier(sce$ratio_detected_sum, type = "both")
 # Save the object at this stage with the label "preliminary analysis" 
 # As only annotation addition has been done, without deleting anything yet.
 saveRDS(sce, here("processed", "sce_preliminary.RDS"))
@@ -166,6 +171,15 @@ saveRDS(sce, here("processed", "sce_preliminary.RDS"))
 
 summary(sce$ratio_detected_sum)
 plotColData(sce, x="sum", y="detected", colour_by="ratio_detected_sum")
+# Plot an histogram with the ratio between umi and gene counts
+hist(
+    sce$ratio_detected_sum,
+    breaks = 100
+)
+# Use the is outlier function from scater to see the cutoffs
+plotColData(sce, x="sum", y="detected", colour_by="outlier_ratio")
+attr(sce$outlier_ratio, "thresholds")
+
 ```
 
 
