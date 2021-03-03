@@ -109,6 +109,10 @@ plotColData(sce, x="Sample", y="sum", colour_by="outlier") +
 plotColData(sce, x="Sample", y="detected", colour_by="outlier") + 
   scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
+```{r}
+plotColData(sce, x="Sample", y="sum", colour_by="chip") + 
+  scale_y_log10() + ggtitle("total count by batch") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
 
 ```{r}
 plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="outlier") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
@@ -132,5 +136,15 @@ plotColData(sce, x="sum", y="detected", colour_by="outlier")
 plotColData(sce, x="sum", y="detected", colour_by="Sample")
 ```
 
-TODO: 
-pca
+### PCA
+
+ Here we run a PCA using the information in the metadata instead of the gene expression.
+ It is usefull to visualize the QC parametres.  
+```{r PCA}
+sce <- runColDataPCA(sce,  variables = c("sum","detected", "subsets_mt_percent"))
+plotReducedDim(sce, dimred="PCA_coldata", colour_by = "outlier")
+plotReducedDim(sce, dimred="PCA_coldata", colour_by = "Sample")
+sce$chip <- as.character(sce$chip)
+plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
+```
+
