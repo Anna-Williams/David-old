@@ -45,6 +45,8 @@ rowData(sce)$symb_uniq <- symb_unique
 rowData(sce)$gene_name <- genename
 # Subset the mitochondrial genes
 is_mito <- grepl("^mt-", rownames(sce))
+}else{
+  sce <- readRDS(here("processed", "sce_preliminary.RDS"))
 }
 ```
 Then we can use the scater package to add the quality per cell
