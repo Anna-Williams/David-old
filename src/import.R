@@ -14,7 +14,7 @@ library(DropletUtils)
 # Create file path for each sample matrix and metadata ------
 samples <- dir(here("data/filtered/"))
 matrices <- here("data/filtered/", samples, "filtered_feature_bc_matrix")
-metadata <- read_csv(here("data/metadata_scRNAseq.csv"))
+metadata <- read.csv(here("data/metadata_scRNAseq.csv"))
 
 # Create object -----
 sce <- read10xCounts(matrices, samples, version = "auto", col.names = TRUE)
