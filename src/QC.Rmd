@@ -182,9 +182,6 @@ parametres, that do follow a normal distribution.
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 sce$ratio_detected_sum <- sce$detected/sce$sum
 sce$outlier_ratio <- isOutlier(sce$ratio_detected_sum, type = "both")
-# Save the object at this stage with the label "preliminary analysis" 
-# As only annotation addition has been done, without deleting anything yet.
-saveRDS(sce, here("processed", "sce_preliminary.RDS"))
 }else{
   sce <- readRDS(here("processed", "sce_preliminary.RDS"))
 }
@@ -223,3 +220,32 @@ that filter out cells with relatively high umi counts but very few detected
 genes ( lots of copies from the same genes?). As well as the automatic
 mitochondrial threshold, `r attr(outlier_mt, "thresholds")$higher`, this is a bit high compared with other datasets but
 it is already deleting `r sum(outlier_mt)` cells. Lower down to 10 %, to delete the whole tail would delete `r sum(sce$subsets_mt_percent>10)` cells. 
+
+Here we code the new thersholds
+```{r}
+if(!file.exists(here("processed", "sce_preliminary.RDS"))){
+# New thresholds
+discard_lib_high <- sce$sum > 50000
+discard_expr_high <- sce$detected > 7500
+discard_expr_low <- outlier_expr_low
+discard_lib_low <- outlier_lib_low
+discard_ratio <- sce$outlier_ratio
+discard_mt <- outlier_mt
+sce$discard <- discard_lib_high | discard_expr_high | discard_expr_low | discard_lib_low | discard_ratio | discard_mt 
+
+# See how many cells are detected as outliers
+DataFrame(
+  lib_size_high = sum(discard_lib_high),
+  expression_high = sum(discard_expr_high),
+  lib_size_low = sum(discard_lib_low),
+  expression_low = sum(discard_expr_low),
+  mt_pct = sum(outlier_mt),
+  ratio_umi_genes = sum(discard_ratio),
+  total = sum(sce$discard)
+)
+# Save the object at this stage with the label "preliminary analysis" 
+# As only annotation addition has been done, without deleting anything yet.
+saveRDS(sce, here("processed", "sce_preliminary.RDS"))}
+```
+
+Bellow we are going to plot the same plots as before with the decided thresholds
