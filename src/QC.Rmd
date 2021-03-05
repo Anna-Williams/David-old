@@ -249,4 +249,36 @@ discard
 ```
 
 The resulting object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells. 
+
+
 Bellow we are going to plot the same plots as before with the decided thresholds
+
+## QC with new thresholds
+
+### Violin plots
+
+```{r umi-discard}
+plotColData(sce, x="Sample", y="sum", colour_by="discard") + 
+  ggtitle("Total count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plotColData(sce, x="Sample", y="sum", colour_by="discard") + 
+  scale_y_log10() + ggtitle("Total count log scale") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+```{r detected-discard}
+plotColData(sce, x="Sample", y="detected", colour_by="discard") + 
+  scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+
+```{r mithocondrial-discard}
+plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="discard") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+
+### Scatter plots
+
+```{r scatterplots-discard}
+plotColData(sce, x="sum", y="subsets_mt_percent", colour_by="discard")
+plotColData(sce, x="sum", y="detected", colour_by="discard")
+```
+
