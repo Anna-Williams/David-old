@@ -201,6 +201,25 @@ plotColData(sce, x="sum", y="detected", colour_by="outlier_ratio")
 attr(sce$outlier_ratio, "thresholds")
 
 ```
-The suggestions here are very reasonable, it is not enough to delete all the cells we do not 
-trust but we can definitely take this into consideration as a threshold parametre. 
 
+The suggestions here are very reasonable, it is not enough to delete all the
+cells we do not trust but we can definitely take this into consideration as a
+threshold parameter.
+
+# Decide the thresholds
+
+For the genes detected and sum of genes the upper thresholds automatically
+generated are not very convincing.These thresholds allow to filter doublet
+cells, but they seem way too harsh on those estimattions. We could start with
+50,000 for the number of umi and 7500 for the number of detected genes.
+
+The lower thresholds allow to remove empty droplets and bad quality cells. For
+these ones we could use the automatic ones, as they seem more reasonable (even
+though they might be a bit too permissive it is fine for a first filer). These
+are deleting cells with less than `r attr(outlier_expr_low, "thresholds")$lower` detected genes and `r attr(outlier_lib_low, "thresholds")$lower` umi counts.
+
+Finally we will also take in consideration the umi counts/detected genes ratio,
+that filter out cells with relatively high umi counts but very few detected
+genes ( lots of copies from the same genes?). As well as the automatic
+mitochondrial threshold, `r attr(outlier_mt, "thresholds")$higher`, this is a bit high compared with other datasets but
+it is already deleting `r sum(outlier_mt)` cells. Lower down to 10 %, to delete the whole tail would delete `r sum(sce$subsets_mt_percent>10)` cells. 
