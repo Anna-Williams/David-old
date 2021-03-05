@@ -229,7 +229,7 @@ discard_mt <- outlier_mt
 sce$discard <- discard_lib_high | discard_expr_high | discard_expr_low | discard_lib_low | discard_ratio | discard_mt 
 
 # See how many cells are detected as outliers
-DataFrame(
+discard <- DataFrame(
   lib_size_high = sum(discard_lib_high),
   expression_high = sum(discard_expr_high),
   lib_size_low = sum(discard_lib_low),
@@ -238,9 +238,15 @@ DataFrame(
   ratio_umi_genes = sum(discard_ratio),
   total = sum(sce$discard)
 )
+write.csv(discard, here("outs", "reason_for_discard.csv"))
 # Save the object at this stage with the label "preliminary analysis" 
 # As only annotation addition has been done, without deleting anything yet.
-saveRDS(sce, here("processed", "sce_preliminary.RDS"))}
+saveRDS(sce, here("processed", "sce_preliminary.RDS"))}else{
+  discard <- read.csv(here("outs", "reason_for_discard.csv"))
+}
+discard
+
 ```
 
+The resulting object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells. 
 Bellow we are going to plot the same plots as before with the decided thresholds
