@@ -23,18 +23,6 @@ sce <- readRDS(here("processed", "sce.RDS"))
 
 The object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells before filtering
 
-# Gene QC
-
-We start by removing genes not expressed in any cell
-
-```{r gene-qc}
-genes_beforeqc <- dim(sce)[1]
-keep_feature <- rowSums(counts(sce) > 0) > 0
-sce <- sce[keep_feature, ]
-genes_beforeqc -dim(sce)[1] 
-```
-
-6511 genes are not expressed in any cell.
 
 # Add cell QC metrics to the sce
 
@@ -282,6 +270,19 @@ plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="discard") + ggti
 plotColData(sce, x="sum", y="subsets_mt_percent", colour_by="discard")
 plotColData(sce, x="sum", y="detected", colour_by="discard")
 ```
+# Gene QC
+
+It is typically a good idea to remove genes whose expression level is considered “undetectable”. Here we define a gene as detectable if at least two cells contain a transcript from the gene. It is important to keep in mind that genes must be filtered after cell filtering since some genes may only be detected in poor quality cells.
+
+```{r gene-qc}
+genes_beforeqc <- dim(sce)[1]
+keep_feature <- rowSums(counts(sce) > 0) > 1
+sce <- sce[keep_feature, ]
+genes_beforeqc -dim(sce)[1] 
+```
+
+This way we deleted `r genes_beforeqc -dim(sce)[1] ` genes and kept `r sum(keep_feature)` genes
+
 ### Create new filetered object
 
 ```{r}
