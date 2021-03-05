@@ -99,8 +99,6 @@ attr(outlier_mt, "thresholds")
 # Add if it is an outlier to the metadata
 sce$outlier <- outlier
 
-}else{
-  sce <- readRDS(here("processed", "sce_preliminary.RDS"))
 }
 ```
 
@@ -164,7 +162,9 @@ Here we run a PCA using the information in the metadata instead of the gene
 expression. It is useful to visualize the QC parametres.
 
 ```{r PCA}
+if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 sce <- runColDataPCA(sce,  variables = c("sum","detected", "subsets_mt_percent"))
+}
 plotReducedDim(sce, dimred="PCA_coldata", colour_by = "Sample")
 sce$chip <- as.character(sce$chip)
 plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
@@ -182,8 +182,6 @@ parametres, that do follow a normal distribution.
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 sce$ratio_detected_sum <- sce$detected/sce$sum
 sce$outlier_ratio <- isOutlier(sce$ratio_detected_sum, type = "both")
-}else{
-  sce <- readRDS(here("processed", "sce_preliminary.RDS"))
 }
 
 summary(sce$ratio_detected_sum)
