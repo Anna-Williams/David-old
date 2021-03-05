@@ -26,7 +26,7 @@ The object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells before filtering
 
 # Add cell QC metrics to the sce
 
-First are sorted the genenames and gene symbols, because the default ensembl
+First we need to sort the gene names and gene symbols, because the default ensembl
 notation is not very handy. And then save the mitochondrial genes as such.
 
 ```{r gene-names}
@@ -50,9 +50,14 @@ is_mito <- grepl("^mt-", rownames(sce))
 ```
 
 Then we can use the scater package to add the quality per cell.
+This computes for each cell some usefull metrics such as the number of 
+umi counts (library size), the number of detected genes and the percentage 
+of mitochondiral genes. 
 
-The log transformation for the low thresholds prevents negative
-thresholds.
+Then we use the automatic isOutlier function from the same package that determine
+which values in a numeric vector are outliers based on the median absolute
+deviation (MAD). When using this function with low number a log transformation
+is added, that prevents negative thresholds.
 
 ```{r addQC}
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
@@ -92,8 +97,7 @@ sce$outlier <- outlier
 # Plots before QC
 
 Diagnostic plots to visualize the data distribution. The orange cells are marked
-as outliers by the automatic detection from scater. The thresholds are not very
-useful, so these will poblably be ignored.
+as outliers by the automatic detection from scater. These thresholds will probably be manually adjusted to better fit the distribution of our data. 
 
 ### Violin plots
 
@@ -120,20 +124,35 @@ plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="outlier") + ggti
 
 ### Histograms
 
+In the x axis we can see the total number of umi (library size) per cell, the number of detected genes per cell and the mitochondrial percentage per cell; with the number of cells for each measure in the y axis. 
+
+
 ```{r}
 hist(
     sce$total,
     breaks = 100
 )
+```
+
+This object had already been filtrated with the cell-calling algorithm from CellRanger, that is meant to remove empty droplets. Therefore it is expected to see the total sum of umi skewed as in the plot above.
+
+```{r}
 hist(
     sce$detected,
     breaks = 100
 )
+```
+
+A bimodal plot is not something usual for the detected number of genes. This bimodality was already visible in the violin plots. 
+
+```{r}
 hist(
     sce$subsets_mt_percent,
     breaks = 100
 )
 ```
+
+There is a very heavy tail of cells with high mitochondrial genes. 
 
 ### Scatter plots
 
@@ -159,11 +178,8 @@ plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
 
 ### Ratio between sum and gene counts
 
-This measures will probably very useful to get rid of these cells that have low
-gene counts but a relatively high umi count. The isoutlier function did not work
-very well with the sum of umi and the detected genes. This function expects
-roughly a normal distribution. Bellow we try with the ratio between these two
-parametres, that do follow a normal distribution.
+This measures the number of detected genes per cell dividided by its lirary size. This will be very useful to get rid of the cells that have low
+gene counts but a relatively high umi count. 
 
 ```{r}
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
@@ -178,6 +194,13 @@ hist(
     sce$ratio_detected_sum,
     breaks = 100
 )
+```
+
+The isoutlier function did not work
+very well with the sum of umi and the detected genes. This is probably due to the fact that this function expects
+roughly a normal distribution. Bellow we use it with the ratio between these two
+parametres, that do follow a normal distribution.
+```{r}
 # Use the is outlier function from scater to see the cutoffs suggestions
 plotColData(sce, x="sum", y="detected", colour_by="outlier_ratio")
 attr(sce$outlier_ratio, "thresholds")
@@ -238,11 +261,10 @@ discard
 
 ```
 
+## QC with new thresholds
 
 
 Bellow we are going to plot the same plots as before with the decided thresholds
-
-## QC with new thresholds
 
 ### Violin plots
 
@@ -270,6 +292,7 @@ plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="discard") + ggti
 plotColData(sce, x="sum", y="subsets_mt_percent", colour_by="discard")
 plotColData(sce, x="sum", y="detected", colour_by="discard")
 ```
+
 # Gene QC
 
 It is typically a good idea to remove genes whose expression level is considered “undetectable”. Here we define a gene as detectable if at least two cells contain a transcript from the gene. It is important to keep in mind that genes must be filtered after cell filtering since some genes may only be detected in poor quality cells.
@@ -283,7 +306,7 @@ genes_beforeqc -dim(sce)[1]
 
 This way we deleted `r genes_beforeqc -dim(sce)[1] ` genes and kept `r sum(keep_feature)` genes
 
-### Create new filetered object
+# Create new filetered object
 
 ```{r}
 if(!file.exists(here("processed", "sce_QC.RDS"))) {
