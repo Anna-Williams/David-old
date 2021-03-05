@@ -21,6 +21,8 @@ library(org.Mm.eg.db) # To annotate the genenames
 sce <- readRDS(here("processed", "sce.RDS"))
 ```
 
+The object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells before filtering
+
 # Gene QC
 
 We start by removing genes not expressed in any cell
@@ -248,7 +250,6 @@ discard
 
 ```
 
-The resulting object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells. 
 
 
 Bellow we are going to plot the same plots as before with the decided thresholds
@@ -281,4 +282,13 @@ plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="discard") + ggti
 plotColData(sce, x="sum", y="subsets_mt_percent", colour_by="discard")
 plotColData(sce, x="sum", y="detected", colour_by="discard")
 ```
+### Create new filetered object
 
+```{r}
+if(!file.exists(here("processed", "sce_QC.RDS"))) {
+  sce <- sce[, sce$discard == FALSE]
+  saveRDS(sce, here("processed", "sce_QC.RDS"))
+}
+```
+
+The object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells after filtering
