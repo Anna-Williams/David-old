@@ -208,12 +208,12 @@ cells, but they seem way too harsh on those estimattions. We could start with
 The lower thresholds allow to remove empty droplets and bad quality cells. For
 these ones we could use the automatic ones, as they seem more reasonable (even
 though they might be a bit too permissive it is fine for a first filer). These
-are deleting cells with less than `r attr(outlier_expr_low, "thresholds")$lower` detected genes and `r attr(outlier_lib_low, "thresholds")$lower` umi counts.
+are deleting cells with less than `r attr(outlier_expr_low, "thresholds")["lower"]` detected genes and `r attr(outlier_lib_low, "thresholds")["lower"]` umi counts.
 
 Finally we will also take in consideration the umi counts/detected genes ratio,
 that filter out cells with relatively high umi counts but very few detected
 genes ( lots of copies from the same genes?). As well as the automatic
-mitochondrial threshold, `r attr(outlier_mt, "thresholds")$higher`, this is a bit high compared with other datasets but
+mitochondrial threshold, `r attr(outlier_mt, "thresholds")["higher"]`, this is a bit high compared with other datasets but
 it is already deleting `r sum(outlier_mt)` cells. Lower down to 10 %, to delete the whole tail would delete `r sum(sce$subsets_mt_percent>10)` cells. 
 
 Here we code the new thersholds
