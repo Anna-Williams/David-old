@@ -3,33 +3,42 @@ title: "Gene and Cell QC"
 author: "NadineBestard"
 date: "27/02/2021"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 80
 ---
 
 # Set-up
+
 ```{r set-up, message=FALSE, warning=FALSE}
 library(here) # for reproducible paths
 library(SingleCellExperiment)
 library(scater) # For qc
 library(org.Mm.eg.db) # To annotate the genenames
 ```
+
 ```{r load-sce}
 sce <- readRDS(here("processed", "sce.RDS"))
 ```
 
 # Gene QC
+
 We start by removing genes not expressed in any cell
+
 ```{r gene-qc}
 genes_beforeqc <- dim(sce)[1]
 keep_feature <- rowSums(counts(sce) > 0) > 0
 sce <- sce[keep_feature, ]
 genes_beforeqc -dim(sce)[1] 
 ```
-6511 cells are not expressed in any cell. 
 
+6511 genes are not expressed in any cell.
 
 # Add cell QC metrics to the sce
 
-First are sorted the genenames and gene symbols, because the default ensembl notation is not very handy. And then save the  mitochondrial genes as such.
+First are sorted the genenames and gene symbols, because the default ensembl
+notation is not very handy. And then save the mitochondrial genes as such.
+
 ```{r gene-names}
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 # obtain full genenames
@@ -49,8 +58,12 @@ is_mito <- grepl("^mt-", rownames(sce))
   sce <- readRDS(here("processed", "sce_preliminary.RDS"))
 }
 ```
-Then we can use the scater package to add the quality per cell
-## First try log for low thresholds but not for high. In low this prevents negative thresholds
+
+Then we can use the scater package to add the quality per cell.
+
+The log transformation for the low thresholds prevents negative
+thresholds.
+
 ```{r addQC}
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 sce <- addPerCellQC(sce, subsets = list(mt=is_mito))
@@ -93,8 +106,9 @@ sce$outlier <- outlier
 
 # Plots before QC
 
-Diagnostic plots to visualize the data distribution. The orange cells are marked as outliers by the automatic
-detection from scater. The thresholds are not very useful, so these will poblably be ignored. 
+Diagnostic plots to visualize the data distribution. The orange cells are marked
+as outliers by the automatic detection from scater. The thresholds are not very
+useful, so these will poblably be ignored.
 
 ### Violin plots
 
@@ -109,6 +123,7 @@ plotColData(sce, x="Sample", y="sum", colour_by="outlier") +
 plotColData(sce, x="Sample", y="detected", colour_by="outlier") + 
   scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
+
 ```{r}
 plotColData(sce, x="Sample", y="sum", colour_by="chip") + 
   scale_y_log10() + ggtitle("total count by batch") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
@@ -119,6 +134,7 @@ plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="outlier") + ggti
 ```
 
 ### Histograms
+
 ```{r}
 hist(
     sce$total,
@@ -133,7 +149,9 @@ hist(
     breaks = 100
 )
 ```
+
 ### Scatter plots
+
 ```{r}
 plotColData(sce, x="sum", y="subsets_mt_percent", colour_by="outlier")
 plotColData(sce, x="sum", y="detected", colour_by="outlier")
@@ -142,8 +160,9 @@ plotColData(sce, x="sum", y="detected", colour_by="Sample")
 
 ### PCA
 
- Here we run a PCA using the information in the metadata instead of the gene expression.
- It is useful to visualize the QC parametres.  
+Here we run a PCA using the information in the metadata instead of the gene
+expression. It is useful to visualize the QC parametres.
+
 ```{r PCA}
 sce <- runColDataPCA(sce,  variables = c("sum","detected", "subsets_mt_percent"))
 plotReducedDim(sce, dimred="PCA_coldata", colour_by = "Sample")
@@ -151,14 +170,14 @@ sce$chip <- as.character(sce$chip)
 plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
 ```
 
-
-
-
 ### Ratio between sum and gene counts
-This measures will probably very useful to get rid of these cells that have low gene counts but a relatively high umi count.
-The isoutlier function did not work very well with the sum of umi and the detected 
-genes. This function expects roughly a normal distribution. Bellow we try with the ratio
-between these two parametres, that do follow a normal distribution. 
+
+This measures will probably very useful to get rid of these cells that have low
+gene counts but a relatively high umi count. The isoutlier function did not work
+very well with the sum of umi and the detected genes. This function expects
+roughly a normal distribution. Bellow we try with the ratio between these two
+parametres, that do follow a normal distribution.
+
 ```{r}
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
 sce$ratio_detected_sum <- sce$detected/sce$sum
