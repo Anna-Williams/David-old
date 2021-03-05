@@ -22,6 +22,8 @@ sce <- read10xCounts(matrices, samples, version = "auto", col.names = TRUE)
 coldata <- colData(sce)
 coldata <- merge(x= coldata, y= metadata, by = "Sample", all.x=TRUE)
 colData(sce) <- coldata
+# The chip is etected as an integer instead of a character
+sce$chip <- as.character(sce$chip)
 # Save the object
 saveRDS(sce, here("processed", "sce.RDS"))
 
