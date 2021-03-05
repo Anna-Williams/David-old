@@ -66,7 +66,7 @@ thresholds.
 
 ```{r addQC}
 if(!file.exists(here("processed", "sce_preliminary.RDS"))){
-sce <- addPerCellQC(sce, subsets = list(mt=is_mito))
+sce <- addPerCellQC(sce, subsets = list(mt=is_mito)) }
 # Automated outlier detection
 outlier_lib_low <- isOutlier(sce$total, log = TRUE, type = "lower")
 outlier_expr_low <-
@@ -95,11 +95,8 @@ attr(outlier_expr_high, "thresholds")
 attr(outlier_lib_low, "thresholds")
 attr(outlier_expr_low, "thresholds")
 attr(outlier_mt, "thresholds")
-# TODO do the analysis separating by batch?
 # Add if it is an outlier to the metadata
 sce$outlier <- outlier
-
-}
 ```
 
 # Plots before QC
