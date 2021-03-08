@@ -306,6 +306,14 @@ genes_beforeqc -dim(sce)[1]
 
 This way we deleted `r genes_beforeqc -dim(sce)[1] ` genes and kept `r sum(keep_feature)` genes
 
+We can look at a plot that shows the top 50 (by default) most-expressed features. Each row in the plot below corresponds to a gene; each bar corresponds to the expression of a gene in a single cell; and the circle indicates the median expression of each gene, with which genes are sorted. We expect to see the “usual suspects”, i.e., mitochondrial genes, actin, ribosomal protein, MALAT1. A large number of pseudo-genes or predicted genes may indicate problems with alignment.
+
+```{r}
+plotHighestExprs(sce, exprs_values = "counts", colour_cells_by = "age")
+```
+The young ones are not visible on the low side, but this is just due to the fact that first is plotted one color, and then the other on top, covering the color bellow if there are dots on the same place. 
+
+
 # Create new filetered object
 
 ```{r}
