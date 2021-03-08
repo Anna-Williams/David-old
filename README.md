@@ -11,3 +11,9 @@ filtered matrices are in the "data" folder.
 ## Src
  In source I add the code used to do the analysis. 
  - import.R imports the raw counts from 10x and the metadata into a sce object. 
+ - The first cell and gene quality control is in QC.Rmd
+ 
+ 
+## Docs
+ The html documents generated with the source code and the plots are separated 
+ in this folder.
