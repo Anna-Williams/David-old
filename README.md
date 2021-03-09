@@ -10,6 +10,8 @@ filtered matrices are in the "data" folder.
 
 ## Src
  In source I add the code used to do the analysis. 
+ Most of the code and the explanations for the use of different method are extracted from the [Sanger institute scRNA-seq workflow](https://scrnaseq-course.cog.sanger.ac.uk/website/index.html) and the Bioconductor book, [Orchestrating Single-Cell Analysis with Bioconductor](https://bioconductor.org/books/release/OSCA/)
+ 
  - import.R imports the raw counts from 10x and the metadata into a sce object. 
  - The first cell and gene quality control is in QC.Rmd
  
