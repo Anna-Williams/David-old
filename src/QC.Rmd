@@ -324,3 +324,12 @@ if(!file.exists(here("processed", "sce_QC.RDS"))) {
 ```
 
 The object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells after filtering
+
+## Session Info
+
+<details>
+  <summary>Click to expand </summary>
+```{r}
+sessionInfo()
+```
+
