@@ -333,3 +333,5 @@ The object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells after filtering
 sessionInfo()
 ```
 
+</details>
+
