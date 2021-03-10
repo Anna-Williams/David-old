@@ -54,19 +54,25 @@ In order to correct for systematic differences in sequencing coverage between li
 
 Specifically we will used the deconvolution method available in the `scran` package. This method allows to take in consideration the composition bias between samples [(Lun et al., 2016)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4848819/)
 
-```{r}
-# For reproducibility
-set.seed(100)
-# Quick clustering to pool samples together and deal with 0 counts
-quick_clusters <- quickCluster(sce) 
-# Calculate size factors
-sce <- computeSumFactors(sce, cluster=quick_clusters, min.mean=0.1)
-# Check that there are not negative size factors
-summary(sizeFactors(sce))
-# Apply size factors and log transform them
-sce <- logNormCounts(sce)
-# Also log normalise the raw counts
-assay(sce, "logcounts_raw") <- matLog2(counts(sce))
+```{r norm}
+# Only compute if first time
+if (!(file.exists(here("processed", "sce_norm.RDS")))) {
+  # For reproducibility
+  set.seed(100)
+  # Quick clustering to pool samples together and deal with 0 counts
+  quick_clusters <- quickCluster(sce)
+  # Calculate size factors
+  sce <- computeSumFactors(sce, cluster = quick_clusters, min.mean = 0.1)
+  # Check that there are not negative size factors
+  summary(sizeFactors(sce))
+  # Apply size factors and log transform them
+  sce <- logNormCounts(sce)
+  # Also log normalise the raw counts
+  assay(sce, "logcounts_raw") <- matLog2(counts(sce))
+  saveRDS(sce, here("processed", "sce_norm.RDS"))
+} else{
+  sce <- readRDS(here("processed", "sce_norm.RDS"))
+}
 ```
 
 On top of normalisation the data it is also log-transformed. The log-transformation is useful as differences in the log-values represent log-fold changes in expression. Or in other words, which is more interesting - a gene that is expressed at an average count of 50 in cell type A and 10 in cell type B, or a gene that is expressed at an average count of 1100 in A and 1000 in B? Log-transformation focuses on the former by promoting contributions from genes with strong relative differences.
@@ -78,57 +84,90 @@ Variable-level metrics are computed by the getVarianceExplained() function (befo
 The percentage of variance explained by a factor is on the x axis, and in the y axis there is the density of the R-squared values across all genes.
 The "total" is the total number of molecules, that correlates with the detected number of genes, detected.
 
-```{r}
+### Before normalisation
+
+```{r var}
 # Before normalisation
 # Only compute if first time
-if(!(file.exists(here("processed", "variance_explained.RDS")))){
+if (!(file.exists(here("processed", "variance_explained.RDS")))) {
   # Calculate the matrix (time consuming step)
-var <- getVarianceExplained(
-   sce,
-   exprs_values = "logcounts_raw",
+  var <- getVarianceExplained(
+    sce,
+    exprs_values = "logcounts_raw",
     variables = c(
-        "tissue",
-        "chip",
-        "Sample",
-        "age",
-        "subsets_mt_percent",
-        "detected",
-        "total"
+      "tissue",
+      "chip",
+      "Sample",
+      "age",
+      "subsets_mt_percent",
+      "detected",
+      "total"
     )
- )
-saveRDS(var, here("processed", "variance_explained.RDS"))
-#If not just load created object
-}else{
- var <- readRDS(here("processed", "variance_explained.RDS"))
+  )
+  saveRDS(var, here("processed", "variance_explained.RDS"))
+  #If not just load created object
+} else{
+  var <- readRDS(here("processed", "variance_explained.RDS"))
 }
 plotExplanatoryVariables(var)
+```
 
+### After normalisation
+
+We can see how there is less variance explained now by factors such as the detected genes or the number of counts
+```{r var_norm}
 # After normalisation
-if(!(file.exists(here("processed", "variance_explained_norm.RDS")))){
-var_norm <- getVarianceExplained(
-   sce,
+if (!(file.exists(
+  here("processed", "variance_explained_norm.RDS")
+))) {
+  var_norm <- getVarianceExplained(
+    sce,
     variables = c(
-        "tissue",
-        "chip",
-        "Sample",
-        "age",
-        "subsets_mt_percent",
-        "detected",
-        "total"
+      "tissue",
+      "chip",
+      "Sample",
+      "age",
+      "subsets_mt_percent",
+      "detected",
+      "total"
     )
- )
-saveRDS(var_norm, here("processed", "variance_explained_norm.RDS"))
-}else{
- var_norm <- readRDS(here("processed", "variance_explained_norm.RDS"))
+  )
+  saveRDS(var_norm, here("processed", "variance_explained_norm.RDS"))
+} else{
+  var_norm <- readRDS(here("processed", "variance_explained_norm.RDS"))
 }
 plotExplanatoryVariables(var_norm)
+
+# Again after normalisation but other parametres
+if (!(file.exists(
+  here("processed", "variance_explained_norm_2.RDS")
+))) {
+  var_norm_2 <- getVarianceExplained(
+    sce,
+    variables = c(
+      "tissue",
+      "chip",
+      "age",
+      "genotype",
+      "mouse",
+      "total"
+    )
+  )
+  saveRDS(var_norm_2, here("processed", "variance_explained_norm_2.RDS"))
+} else{
+  var_norm_2 <- readRDS(here("processed", "variance_explained_norm_2.RDS"))
+}
+plotExplanatoryVariables(var_norm_2)
 ```
+
+It is reassuring to see that more variance is explained by the mice the sample
+came from than from the chip.
 
 ## Session Info
 
 <details>
   <summary>Click to expand </summary>
-```{r}
+```{r session-info}
 sessionInfo()
 ```
 
