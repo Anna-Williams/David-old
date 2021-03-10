@@ -11,11 +11,42 @@ library(here) # for reproducible paths
 library(SingleCellExperiment)
 library(scater) # For qc
 library(scran) # For normalisation
+library(Matrix) # For log transorming the raw data
 ```
 
 ```{r load-sce}
 sce <- readRDS(here("processed", "sce_QC.RDS"))
 ```
+
+```{r}
+# Adapted function from VISION to log tranform sparse matrix
+# I could not download the package
+matLog2 <- function(spmat, scale = FALSE, scaleFactor = 1e6) {
+
+
+    if (scale == TRUE) {
+        spmat <- t( t(spmat) / colSums(spmat)) * scaleFactor
+    }
+
+    if (is(spmat, "sparseMatrix")) {
+        matsum <- summary(spmat)
+
+        logx <- log2(matsum$x + 1)
+
+        logmat <- sparseMatrix(i = matsum$i, j = matsum$j,
+                               x = logx, dims = dim(spmat),
+                               dimnames = dimnames(spmat))
+    } else {
+        logmat <- log2(spmat + 1)
+    }
+
+
+    return(logmat)
+
+}
+
+```
+
 
 # Normalisation by deconvolution
 
@@ -27,27 +58,78 @@ Specifically we will used the deconvolution method available in the `scran` pack
 # For reproducibility
 set.seed(100)
 # Quick clustering to pool samples together and deal with 0 counts
-clusters <- quickCluster(sce) 
-
+quick_clusters <- quickCluster(sce) 
+# Calculate size factors
+sce <- computeSumFactors(sce, cluster=quick_clusters, min.mean=0.1)
+# Check that there are not negative size factors
+summary(sizeFactors(sce))
+# Apply size factors and log transform them
+sce <- logNormCounts(sce)
+# Also log normalise the raw counts
+assay(sce, "logcounts_raw") <- matLog2(counts(sce))
 ```
 
 On top of normalisation the data it is also log-transformed. The log-transformation is useful as differences in the log-values represent log-fold changes in expression. Or in other words, which is more interesting - a gene that is expressed at an average count of 50 in cell type A and 10 in cell type B, or a gene that is expressed at an average count of 1100 in A and 1000 in B? Log-transformation focuses on the former by promoting contributions from genes with strong relative differences.
 
 # Assess Confunding factors impact
 
-Variable-level metrics are computed by the getVarianceExplained() function (after normalization). This calculates the percentage of variance of each gene’s expression that is explained by each variable in the colData of the SingleCellExperiment object. We can then use this to determine which experimental factors are contributing most to the variance in expression. This is useful for diagnosing batch effects or to quickly verify that a treatment has an effect.
+Variable-level metrics are computed by the getVarianceExplained() function (before and after normalization). This calculates the percentage of variance of each gene’s expression that is explained by each variable in the colData of the SingleCellExperiment object. We can then use this to determine which experimental factors are contributing most to the variance in expression. This is useful for diagnosing batch effects or to quickly verify that a treatment has an effect.
+
+The percentage of variance explained by a factor is on the x axis, and in the y axis there is the density of the R-squared values across all genes.
+The "total" is the total number of molecules, that correlates with the detected number of genes, detected.
+
 ```{r}
-plotExplanatoryVariables(
-    umi.qc[endog_genes, ],
-    exprs_values = "logcounts_raw",
+# Before normalisation
+# Only compute if first time
+if(!(file.exists(here("processed", "variance_explained.RDS")))){
+  # Calculate the matrix (time consuming step)
+var <- getVarianceExplained(
+   sce,
+   exprs_values = "logcounts_raw",
     variables = c(
-        "total_features_by_counts",
-        "total_counts",
-        "batch",
-        "individual",
-        "pct_counts_ERCC",
-        "pct_counts_MT"
+        "tissue",
+        "chip",
+        "Sample",
+        "age",
+        "subsets_mt_percent",
+        "detected",
+        "total"
     )
-)
+ )
+saveRDS(var, here("processed", "variance_explained.RDS"))
+#If not just load created object
+}else{
+ var <- readRDS(here("processed", "variance_explained.RDS"))
+}
+plotExplanatoryVariables(var)
+
+# After normalisation
+if(!(file.exists(here("processed", "variance_explained_norm.RDS")))){
+var_norm <- getVarianceExplained(
+   sce,
+    variables = c(
+        "tissue",
+        "chip",
+        "Sample",
+        "age",
+        "subsets_mt_percent",
+        "detected",
+        "total"
+    )
+ )
+saveRDS(var_norm, here("processed", "variance_explained_norm.RDS"))
+}else{
+ var_norm <- readRDS(here("processed", "variance_explained_norm.RDS"))
+}
+plotExplanatoryVariables(var_norm)
 ```
 
+## Session Info
+
+<details>
+  <summary>Click to expand </summary>
+```{r}
+sessionInfo()
+```
+
+</details>
