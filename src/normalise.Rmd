@@ -79,12 +79,15 @@ On top of normalisation the data it is also log-transformed. The log-transformat
 
 # Assess Confunding factors impact
 
+## Variance Explained plots
 Variable-level metrics are computed by the getVarianceExplained() function (before and after normalization). This calculates the percentage of variance of each gene’s expression that is explained by each variable in the colData of the SingleCellExperiment object. We can then use this to determine which experimental factors are contributing most to the variance in expression. This is useful for diagnosing batch effects or to quickly verify that a treatment has an effect.
 
 The percentage of variance explained by a factor is on the x axis, and in the y axis there is the density of the R-squared values across all genes.
 The "total" is the total number of molecules, that correlates with the detected number of genes, detected.
 
 ### Before normalisation
+
+Before normalisation it is expected that most variance will be explained by the sequencing depth, i.e. the total numbber of umis and the total number of genes
 
 ```{r var}
 # Before normalisation
