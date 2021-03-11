@@ -190,8 +190,20 @@ plotPCA(raw, colour_by= "chip", point_size=0.1) +
 
 Combat was shown to outperform other batch correction methods for simple batch
 correction (Buttner et. al, 2019). It has the advantage that the true biological 
-effects that do not want to be regressed can be added. However, this expects
-a balanced design, and here young and old where not balanced across all batches.
+effects that do not want to be regressed can be added. However, this might expect
+a perfectly balanced design.
+
+```{r}
+norm_counts <- logcounts(sce)
+# Transform to dense matrix ERROR
+model_data <- as.data.frame(t(as.matrix(norm_counts)))
+model <- model.matrix(~ sce$genotype + sce$tissue + sce$age + sce$mouse, data = model_data)
+assay(sce, "batch_corrected") <- ComBat(
+    dat = t(model_data), 
+    batch = factor(umi.qc$batch), 
+    mod = model
+)
+```
 
 
 
