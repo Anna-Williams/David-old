@@ -12,6 +12,8 @@ library(SingleCellExperiment)
 library(scater) # For qc
 library(scran) # For normalisation
 library(Matrix) # For log transorming the raw data
+library(ggplot2) # To add titles to plots
+library(sva) # Combat, for batch correction
 ```
 
 ```{r load-sce}
@@ -165,6 +167,33 @@ plotExplanatoryVariables(var_norm_2)
 
 It is reassuring to see that more variance is explained by the mice the sample
 came from than from the chip.
+
+## Dimensional reduction
+
+Another way to assess the variance is by a plot with a PCA plot. 
+Here again we can see how the sequencing depth(sum) explains most 
+of the variance before the normalisation (49%)
+
+```{r}
+raw <- runPCA(sce, exprs_values = "logcounts_raw")
+plotPCA(raw, colour_by= "chip", size_by="sum") + ggtitle("Before normalisation")
+
+sce <- runPCA(sce)
+plotPCA(raw, colour_by= "chip", size_by="sum") + ggtitle("After normalisation")
+plotPCA(raw, colour_by= "chip", point_size=0.1) + 
+  ggtitle("After normalisation, small dots")
+
+```
+
+
+# Batch correction with Combat
+
+Combat was shown to outperform other batch correction methods for simple batch
+correction (Buttner et. al, 2019). It has the advantage that the true biological 
+effects that do not want to be regressed can be added. However, this expects
+a balanced design, and here young and old where not balanced across all batches.
+
+
 
 ## Session Info
 
