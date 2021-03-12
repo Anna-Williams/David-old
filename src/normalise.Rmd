@@ -195,13 +195,15 @@ over-correction due to increased degrees of freedom of these non-linear methods.
 We use a merge tree, useful for merging together batches that are known to be more closely related before attempting difficult merges involving more dissimilar batches.
 ```{r batch-correct}
 set.seed(100)
-sce_batch_corrected <- mnnCorrect(sce,
+sce_batch_corrected <- fastMNN(sce,
   batch = factor(sce$chip),
   merge.order = list(
     list(list("3","5"), list("4","6")), 
     list("1","2")
     )
 )
+# Todo, try regressBatches
+
 ```
 
 
