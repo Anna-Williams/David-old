@@ -13,7 +13,7 @@ library(scater) # For qc
 library(scran) # For normalisation
 library(Matrix) # For log transorming the raw data
 library(ggplot2) # To add titles to plots
-library(sva) # Combat, for batch correction
+library(batchelor) # Mnn, for batch correction
 ```
 
 ```{r load-sce}
@@ -186,22 +186,23 @@ plotPCA(raw, colour_by= "chip", point_size=0.1) +
 ```
 
 
-# Batch correction with Combat
+## Batch correction with MNN
 
 Combat was shown to outperform other batch correction methods for simple batch
-correction (Buttner et. al, 2019). It has the advantage that the true biological 
-effects that do not want to be regressed can be added. However, this might expect
-a perfectly balanced design.
+correction (Buttner et. al, 2019). However, this will also regress other 
+biological differences that are not well balanced between batches. Integration 
+techniques account for this fact, with the downside that it can lead to
+over-correction due to increased degrees of freedom of these non-linear methods. 
 
-```{r}
-norm_counts <- logcounts(sce)
-# Transform to dense matrix ERROR
-model_data <- as.data.frame(t(as.matrix(norm_counts)))
-model <- model.matrix(~ sce$genotype + sce$tissue + sce$age + sce$mouse, data = model_data)
-assay(sce, "batch_corrected") <- ComBat(
-    dat = t(model_data), 
-    batch = factor(umi.qc$batch), 
-    mod = model
+We use a merge tree, useful for merging together batches that are known to be more closely related before attempting difficult merges involving more dissimilar batches.
+```{r batch-correct}
+set.seed(100)
+sce_batch_corrected <- mnnCorrect(sce,
+  batch = factor(sce$chip),
+  merge.order = list(
+    list(list("3","5"), list("4","6")), 
+    list("1","2")
+    )
 )
 ```
 
