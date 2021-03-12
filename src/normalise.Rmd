@@ -202,8 +202,15 @@ sce_batch_corrected <- fastMNN(sce,
     list("1","2")
     )
 )
-# Todo, try regressBatches
+# Todo, try regressBatches() with the design from
 
+```
+
+```{r}
+colData(sce_batch_corrected) <- cbind(colData(sce), colData(sce_batch_corrected))
+sce_batch_corrected <- runPCA(sce_batch_corrected, exprs_values = "reconstructed" )
+plotPCA(sce_batch_corrected, colour_by= "chip", point_size=0.1) + 
+      ggtitle("After batch correction small dots")
 ```
 
 
