@@ -177,8 +177,8 @@ raw <- runPCA(sce, exprs_values = "logcounts_raw")
 plotPCA(raw, colour_by= "chip", size_by="sum") + ggtitle("Before normalisation")
 
 sce <- runPCA(sce)
-plotPCA(raw, colour_by= "chip", size_by="sum") + ggtitle("After normalisation")
-plotPCA(raw, colour_by= "chip", point_size=0.1) + 
+plotPCA(sce, colour_by= "chip", size_by="sum") + ggtitle("After normalisation")
+plotPCA(sce, colour_by= "chip", point_size=0.1) + 
   ggtitle("After normalisation, small dots")
 
 ```
