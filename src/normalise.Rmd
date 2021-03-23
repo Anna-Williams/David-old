@@ -268,6 +268,21 @@ plotReducedDim(sce, colour_by= "chip", point_size=0.1, dimred = "corrected") +
       ggtitle("After batch correction, small dots")
 ```
 
+One useful diagnostic is the proportion of variance within each batch that is 
+lost during MNN correction. Specifically, this refers to the within-batch variance 
+that is removed during orthogonalization with respect to the average correction 
+vector at each merge step. This is in the metadata, which contains a matrix of 
+the variance lost in each batch (column) at each merge step (row).
+
+Large proportions of lost variance (>10%) suggest that correction is removing
+genuine biological heterogeneity. This would occur due to violations of the 
+assumption of orthogonality between the batch effect and the biological subspace.
+In this case, the proportion of lost variance is small, indicating that 
+non-orthogonality is not a major concern.
+
+```{r}
+metadata(sce)$merge.info$lost.var
+```
 
 
 ## Session Info
