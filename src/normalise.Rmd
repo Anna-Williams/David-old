@@ -232,6 +232,37 @@ sce <- correctExperiments(sce,
 )
 ```
 
+### Assess Confunding factors impact
+
+I have never seen this plot used after batch correction and I am not 100% sure (
+and I hope) it is incorrect. 
+```{r}
+# Only compute if first time
+if (!(file.exists(here("processed", "variance_explained_corrected.RDS")))) {
+  # Log transfrom the corrected values
+  assay(sce, "log_reconstructed") <- matLog2(assay(sce, "reconstructed"))
+  # Calculate the matrix (time consuming step)
+  var_corrected <- getVarianceExplained(
+    sce,
+    exprs_values = "log_reconstructed",
+    variables = c(
+      "tissue",
+      "chip",
+      "age",
+      "genotype",
+      "mouse",
+      "total"
+    )
+  )
+  saveRDS(var, here("processed", "variance_explained_corrected.RDS"))
+  #If not just load created object
+} else{
+  var <- readRDS(here("processed", "variance_explained_corrected.RDS"))
+}
+plotExplanatoryVariables(var_corrected)
+```
+
+
 ```{r}
 plotReducedDim(sce, colour_by= "chip", point_size=0.1, dimred = "corrected") + 
       ggtitle("After batch correction, small dots")
