@@ -134,7 +134,7 @@ if (!(file.exists(here("processed", "variance_explained.RDS")))) {
   )
   saveRDS(var, here("processed", "variance_explained.RDS"))
   #If not just load created object
-} else{
+} else {
   var <- readRDS(here("processed", "variance_explained.RDS"))
 }
 plotExplanatoryVariables(var)
@@ -146,8 +146,7 @@ We can see how there is less variance explained now by factors such as the
 detected genes or the number of counts
 ```{r var_norm}
 # After normalisation
-if (!(file.exists(
-  here("processed", "variance_explained_norm.RDS")
+if (!(file.exists(here("processed", "variance_explained_norm.RDS")
 ))) {
   var_norm <- getVarianceExplained(
     sce,
@@ -220,6 +219,9 @@ We use a merge tree, useful for merging together batches that are known to be
 more closely related before attempting difficult merges involving more dissimilar
 batches.
 ```{r batch-correct}
+if (!(file.exists(
+  here("processed", "sce_corrected.RDS")
+))) {
 set.seed(100)
 sce <- correctExperiments(sce,
   batch = factor(sce$chip),
@@ -230,6 +232,10 @@ sce <- correctExperiments(sce,
     )
   )
 )
+  saveRDS(sce, here("processed", "sce_corrected.RDS"))
+} else {
+   sce <- readRDS(here("processed", "sce_corrected.RDS"))
+}
 ```
 
 ### Assess Confunding factors impact
@@ -254,10 +260,10 @@ if (!(file.exists(here("processed", "variance_explained_corrected.RDS")))) {
       "total"
     )
   )
-  saveRDS(var, here("processed", "variance_explained_corrected.RDS"))
+  saveRDS(var_corrected, here("processed", "variance_explained_corrected.RDS"))
   #If not just load created object
 } else{
-  var <- readRDS(here("processed", "variance_explained_corrected.RDS"))
+  var_corrected <- readRDS(here("processed", "variance_explained_corrected.RDS"))
 }
 plotExplanatoryVariables(var_corrected)
 ```
