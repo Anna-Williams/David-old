@@ -25,8 +25,9 @@ The object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells before filtering
 
 # Add cell QC metrics to the sce
 
-First we need to sort the gene names and gene symbols, because the default ensembl
-notation is not very handy. And then save the mitochondrial genes as such.
+First we need to sort the gene names and gene symbols, because the default
+ensembl notation is not very handy. And then save the mitochondrial genes as
+such.
 
 ```{r gene-names}
 if(!file.exists(here("processed", "sce_old_preliminary.RDS"))){
@@ -48,15 +49,14 @@ is_mito <- grepl("^mt-", rownames(sce))
 }
 ```
 
-Then we can use the scater package to add the quality per cell.
-This computes for each cell some useful metrics such as the number of 
-umi counts (library size), the number of detected genes and the percentage 
-of mitochondiral genes. 
+Then we can use the scater package to add the quality per cell. This computes
+for each cell some useful metrics such as the number of umi counts (library
+size), the number of detected genes and the percentage of mitochondiral genes.
 
-Then we use the automatic isOutlier function from the same package that determine
-which values in a numeric vector are outliers based on the median absolute
-deviation (MAD). When using this function with low number a log transformation
-is added, that prevents negative thresholds.
+Then we use the automatic isOutlier function from the same package that
+determine which values in a numeric vector are outliers based on the median
+absolute deviation (MAD). When using this function with low number a log
+transformation is added, that prevents negative thresholds.
 
 ```{r addQC}
 if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
@@ -98,8 +98,8 @@ summary_outlier
 # Plots before QC
 
 Diagnostic plots to visualize the data distribution. The orange cells are marked
-as outliers by the automatic detection from scater. These thresholds will 
-probably be manually adjusted to better fit the distribution of our data. 
+as outliers by the automatic detection from scater. These thresholds will
+probably be manually adjusted to better fit the distribution of our data.
 
 ### Violin plots
 
@@ -126,8 +126,9 @@ plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="outlier") + ggti
 
 ### Histograms
 
-In the x axis we can see the total number of umi (library size) per cell, the number of detected genes per cell and the mitochondrial percentage per cell; with the number of cells for each measure in the y axis. 
-
+In the x axis we can see the total number of umi (library size) per cell, the
+number of detected genes per cell and the mitochondrial percentage per cell;
+with the number of cells for each measure in the y axis.
 
 ```{r}
 hist(
@@ -136,7 +137,9 @@ hist(
 )
 ```
 
-This object had already been filtrated with the cell-calling algorithm from CellRanger, that is meant to remove empty droplets. Therefore it is expected to see the total sum of umi skewed as in the plot above.
+This object had already been filtrated with the cell-calling algorithm from
+CellRanger, that is meant to remove empty droplets. Therefore it is expected to
+see the total sum of umi skewed as in the plot above.
 
 ```{r}
 hist(
@@ -145,7 +148,8 @@ hist(
 )
 ```
 
-A bimodal plot is not something usual for the detected number of genes. This bimodality was already visible in the violin plots. 
+A bimodal plot is not something usual for the detected number of genes. This
+bimodality was already visible in the violin plots.
 
 ```{r}
 hist(
@@ -154,7 +158,7 @@ hist(
 )
 ```
 
-There is a very heavy tail of cells with high mitochondrial genes. 
+There is a very heavy tail of cells with high mitochondrial genes.
 
 ### Scatter plots
 
@@ -180,8 +184,9 @@ plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
 
 ### Ratio between sum and gene counts
 
-This measures the number of detected genes per cell dividided by its lirary size. This will be very useful to delete  the cells that have low
-gene counts but a relatively high umi count. 
+This measures the number of detected genes per cell dividided by its lirary
+size. This will be very useful to delete the cells that have low gene counts but
+a relatively high umi count.
 
 ```{r ratio}
 if(!file.exists(here("processed", "sce_old_preliminary.RDS"))){
@@ -198,7 +203,10 @@ hist(
 )
 ```
 
-The isoutlier function can but used to find the outliers of any distribution, as far as it is roughly normal. Bellow we use it with the ratio between the number of genes expressed and the number of umi.
+The isoutlier function can but used to find the outliers of any distribution, as
+far as it is roughly normal. Bellow we use it with the ratio between the number
+of genes expressed and the number of umi.
+
 ```{r ratio-plots}
 # Use the is outlier function from scater to see the cutoffs suggestions
 plotColData(sce, x="sum", y="detected", colour_by="outlier_ratio")
@@ -213,22 +221,25 @@ threshold parameter.
 # Decide the thresholds
 
 The upper thresholds from the sum of umi counts, that allows filtering doublet
-cells, might be a bit too harsh. This could be due to the fact the
-distribution was not normal. We could start with
-25,000 instead of `r round(summary_outlier$lib_size_high[2])`.
+cells, might be a bit too harsh. This could be due to the fact the distribution
+was not normal. We could start with 25,000 instead of
+`r round(summary_outlier$lib_size_high[2])`.
 
-The other thresholds seem more reasonable. These
-are deleting cells with less than `r round(summary_outlier$expression_high[2])` or more than 
-`r round(summary_outlier$expression_low[2])` detected genes, and less than `r round(summary_outlier$lib_size_low[2])` umi counts.
+The other thresholds seem more reasonable. These are deleting cells with less
+than `r round(summary_outlier$expression_high[2])` or more than
+`r round(summary_outlier$expression_low[2])` detected genes, and less than
+`r round(summary_outlier$lib_size_low[2])` umi counts.
 
 Finally, we will also take in consideration the detected genes/umi counts ratio,
 that filter out cells with relatively high umi counts but very few detected
 genes ( lots of copies from the same genes?). As well as the automatic
-mitochondrial threshold, `r round(summary_outlier$mt_pct[2], 2)` %, this is a bit high compared with other datasets but
-it is already deleting `r summary_outlier$mt_pct[1]` cells. Lower down to only 10 % would delete `r sum(sce$subsets_mt_percent>10)` cells. 
-
+mitochondrial threshold, `r round(summary_outlier$mt_pct[2], 2)` %, this is a
+bit high compared with other datasets but it is already deleting
+`r summary_outlier$mt_pct[1]` cells. Lower down to only 10 % would delete
+`r sum(sce$subsets_mt_percent>10)` cells.
 
 Here we decide the new thersholds.
+
 ```{r fiter-sce}
 if(!file.exists(here("processed", "sce_old_preliminary.RDS"))){
 # New thresholds
@@ -265,7 +276,6 @@ summary_discard
 
 ## QC with new thresholds
 
-
 Bellow we are going to plot the same plots as before with the new thresholds
 
 ### Violin plots
@@ -282,11 +292,9 @@ plotColData(sce, x="Sample", y="detected", colour_by="discard") +
   scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-
 ```{r mithocondrial-discard}
 plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="discard") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
-
 
 ### Scatter plots
 
@@ -297,7 +305,11 @@ plotColData(sce, x="sum", y="detected", colour_by="discard")
 
 # Gene QC
 
-It is typically a good idea to remove genes whose expression level is considered “undetectable”. Here we define a gene as detectable if at least two cells contain a transcript from the gene. It is important to keep in mind that genes must be filtered after cell filtering since some genes may only be detected in poor quality cells.
+It is typically a good idea to remove genes whose expression level is considered
+"undetectable". Here we define a gene as detectable if at least two cells
+contain a transcript from the gene. It is important to keep in mind that genes
+must be filtered after cell filtering since some genes may only be detected in
+poor quality cells.
 
 ```{r gene-qc}
 genes_beforeqc <- dim(sce)[1]
@@ -306,9 +318,16 @@ sce <- sce[keep_feature, ]
 genes_beforeqc -dim(sce)[1] 
 ```
 
-This way we deleted `r genes_beforeqc -dim(sce)[1] ` genes and kept `r sum(keep_feature)` genes
+This way we deleted `r genes_beforeqc -dim(sce)[1]` genes and kept
+`r sum(keep_feature)` genes
 
-We can look at a plot that shows the top 50 (by default) most-expressed features. Each row in the plot below corresponds to a gene; each bar corresponds to the expression of a gene in a single cell; and the circle indicates the median expression of each gene, with which genes are sorted. We expect to see the “usual suspects”, i.e., mitochondrial genes, actin, ribosomal protein, MALAT1. A large number of pseudo-genes or predicted genes may indicate problems with alignment.
+We can look at a plot that shows the top 50 (by default) most-expressed
+features. Each row in the plot below corresponds to a gene; each bar corresponds
+to the expression of a gene in a single cell; and the circle indicates the
+median expression of each gene, with which genes are sorted. We expect to see
+the "usual suspects", i.e., mitochondrial genes, actin, ribosomal protein,
+MALAT1. A large number of pseudo-genes or predicted genes may indicate problems
+with alignment.
 
 ```{r}
 plotHighestExprs(sce, exprs_values = "counts")
@@ -323,7 +342,8 @@ if(!file.exists(here("processed", "sce_old_QC.RDS"))) {
 }
 ```
 
-The object has `r dim(sce)[1]` genes and `r sum(sce$discard == FALSE)` cells after filtering
+The object has `r dim(sce)[1]` genes and `r sum(sce$discard == FALSE)` cells
+after filtering
 
 ## Session Info
 
@@ -334,4 +354,3 @@ sessionInfo()
 ```
 
 </details>
-
