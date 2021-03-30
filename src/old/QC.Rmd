@@ -9,6 +9,9 @@ editor_options:
 ---
 
 # Set-up
+```{r output-code, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ```{r set-up, message=FALSE, warning=FALSE}
 library(here) # for reproducible paths
