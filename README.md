@@ -18,4 +18,4 @@ filtered matrices are in the "data" folder.
  
 ## Docs
  The html documents generated with the source code and the plots are separated 
- in this folder.
+ in this folder. 
