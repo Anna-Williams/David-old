@@ -33,21 +33,21 @@ ensembl notation is not very handy. And then save the mitochondrial genes as
 such.
 
 ```{r gene-names}
-if(!file.exists(here("processed", "sce_old_preliminary.RDS"))){
-# obtain full genenames
-genename <- mapIds(org.Mm.eg.db, keys = rownames(sce), keytype = "ENSEMBL", column = c("GENENAME"))
-# Use the symbols as rownames
-# first make gene names unique 
-# TODO: save duplicate gene name list
-symb_unique <- uniquifyFeatureNames(rownames(sce), rowData(sce)[, "Symbol"])
-# Now they can be used as rownames
-rownames(sce) <- symb_unique
-# Add full gene names and the uniuqe symbols to the rowdata
-rowData(sce)$symb_uniq <- symb_unique
-rowData(sce)$gene_name <- genename
-# Subset the mitochondrial genes
-is_mito <- grepl("^mt-", rownames(sce))
-}else{
+if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
+  # obtain full genenames
+  genename <- mapIds(org.Mm.eg.db, keys = rownames(sce), keytype = "ENSEMBL", column = c("GENENAME"))
+  # Use the symbols as rownames
+  # first make gene names unique
+  # TODO: save duplicate gene name list
+  symb_unique <- uniquifyFeatureNames(rownames(sce), rowData(sce)[, "Symbol"])
+  # Now they can be used as rownames
+  rownames(sce) <- symb_unique
+  # Add full gene names and the uniuqe symbols to the rowdata
+  rowData(sce)$symb_uniq <- symb_unique
+  rowData(sce)$gene_name <- genename
+  # Subset the mitochondrial genes
+  is_mito <- grepl("^mt-", rownames(sce))
+} else {
   sce <- readRDS(here("processed", "sce_old_preliminary.RDS"))
 }
 ```
@@ -65,34 +65,34 @@ transformation is added, that prevents negative thresholds.
 if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
   sce <- addPerCellQC(sce, subsets = list(mt = is_mito))
 
-# Automated outlier detection
-outlier_lib_low <- isOutlier(sce$total, log = TRUE, type = "lower")
-outlier_expr_low <-
-  isOutlier(sce$detected, log = TRUE, type = "lower")
-outlier_lib_high <- isOutlier(sce$total, type = "higher")
-outlier_expr_high <-
-  isOutlier(sce$detected, type = "higher")
-outlier_mt <- isOutlier(sce$subsets_mt_percent, type = "higher")
-# total
-outlier <-
-  outlier_lib_low |
-  outlier_expr_low |
-  outlier_lib_high | outlier_expr_high | outlier_mt
+  # Automated outlier detection
+  outlier_lib_low <- isOutlier(sce$total, log = TRUE, type = "lower")
+  outlier_expr_low <-
+    isOutlier(sce$detected, log = TRUE, type = "lower")
+  outlier_lib_high <- isOutlier(sce$total, type = "higher")
+  outlier_expr_high <-
+    isOutlier(sce$detected, type = "higher")
+  outlier_mt <- isOutlier(sce$subsets_mt_percent, type = "higher")
+  # total
+  outlier <-
+    outlier_lib_low |
+      outlier_expr_low |
+      outlier_lib_high | outlier_expr_high | outlier_mt
 
-# Visualize the thresholds and the cells deleted by each parametre
-summary_outlier <- data.frame(
-  lib_size_high = c(sum(outlier_lib_high),attr(outlier_lib_high, "thresholds")[2]),
-  expression_high = c(sum(outlier_expr_high), attr(outlier_expr_high, "thresholds")[2]),
-  lib_size_low = c(sum(outlier_lib_low),attr(outlier_lib_low, "thresholds")[1]),
-  expression_low = c(sum(outlier_expr_low), attr(outlier_expr_low, "thresholds")[1]),
-  mt_pct = c(sum(outlier_mt),attr(outlier_mt, "thresholds")[2]),
-  total = c(sum(outlier), NA)
-)
-row.names(summary_outlier) <- c("Cells filtered", "Threshold")
-write.csv(summary_outlier, here("outs", "autofilter_summary.csv"))
-# Add if it is an outlier to the metadata
-sce$outlier <- outlier
-}else{
+  # Visualize the thresholds and the cells deleted by each parametre
+  summary_outlier <- data.frame(
+    lib_size_high = c(sum(outlier_lib_high), attr(outlier_lib_high, "thresholds")[2]),
+    expression_high = c(sum(outlier_expr_high), attr(outlier_expr_high, "thresholds")[2]),
+    lib_size_low = c(sum(outlier_lib_low), attr(outlier_lib_low, "thresholds")[1]),
+    expression_low = c(sum(outlier_expr_low), attr(outlier_expr_low, "thresholds")[1]),
+    mt_pct = c(sum(outlier_mt), attr(outlier_mt, "thresholds")[2]),
+    total = c(sum(outlier), NA)
+  )
+  row.names(summary_outlier) <- c("Cells filtered", "Threshold")
+  write.csv(summary_outlier, here("outs", "autofilter_summary.csv"))
+  # Add if it is an outlier to the metadata
+  sce$outlier <- outlier
+} else {
   summary_outlier <- read.csv(here("outs", "autofilter_summary.csv"))
 }
 summary_outlier
@@ -107,24 +107,24 @@ probably be manually adjusted to better fit the distribution of our data.
 ### Violin plots
 
 ```{r}
-plotColData(sce, x="Sample", y="sum", colour_by="outlier") + 
-  ggtitle("Total count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-plotColData(sce, x="Sample", y="sum", colour_by="outlier") + 
-  scale_y_log10() + ggtitle("Total count log scale") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plotColData(sce, x = "Sample", y = "sum", colour_by = "outlier") +
+  ggtitle("Total count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+plotColData(sce, x = "Sample", y = "sum", colour_by = "outlier") +
+  scale_y_log10() + ggtitle("Total count log scale") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r}
-plotColData(sce, x="Sample", y="detected", colour_by="outlier") + 
-  scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plotColData(sce, x = "Sample", y = "detected", colour_by = "outlier") +
+  scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r}
-plotColData(sce, x="Sample", y="sum", colour_by="chip") + 
-  scale_y_log10() + ggtitle("total count by batch") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plotColData(sce, x = "Sample", y = "sum", colour_by = "chip") +
+  scale_y_log10() + ggtitle("total count by batch") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r}
-plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="outlier") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plotColData(sce, x = "Sample", y = "subsets_mt_percent", colour_by = "outlier") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ### Histograms
@@ -135,8 +135,8 @@ with the number of cells for each measure in the y axis.
 
 ```{r}
 hist(
-    sce$total,
-    breaks = 100
+  sce$total,
+  breaks = 100
 )
 ```
 
@@ -146,8 +146,8 @@ see the total sum of umi skewed as in the plot above.
 
 ```{r}
 hist(
-    sce$detected,
-    breaks = 100
+  sce$detected,
+  breaks = 100
 )
 ```
 
@@ -156,8 +156,8 @@ bimodality was already visible in the violin plots.
 
 ```{r}
 hist(
-    sce$subsets_mt_percent,
-    breaks = 100
+  sce$subsets_mt_percent,
+  breaks = 100
 )
 ```
 
@@ -166,9 +166,9 @@ There is a very heavy tail of cells with high mitochondrial genes.
 ### Scatter plots
 
 ```{r}
-plotColData(sce, x="sum", y="subsets_mt_percent", colour_by="outlier")
-plotColData(sce, x="sum", y="detected", colour_by="outlier")
-plotColData(sce, x="sum", y="detected", colour_by="Sample")
+plotColData(sce, x = "sum", y = "subsets_mt_percent", colour_by = "outlier")
+plotColData(sce, x = "sum", y = "detected", colour_by = "outlier")
+plotColData(sce, x = "sum", y = "detected", colour_by = "Sample")
 ```
 
 ### PCA
@@ -177,12 +177,12 @@ Here we run a PCA using the information in the metadata instead of the gene
 expression. It is useful to visualize the QC parametres.
 
 ```{r PCA}
-if(!file.exists(here("processed", "sce_old_preliminary.RDS"))){
-sce <- runColDataPCA(sce,  variables = c("sum","detected", "subsets_mt_percent"))
+if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
+  sce <- runColDataPCA(sce, variables = c("sum", "detected", "subsets_mt_percent"))
 }
-plotReducedDim(sce, dimred="PCA_coldata", colour_by = "Sample")
+plotReducedDim(sce, dimred = "PCA_coldata", colour_by = "Sample")
 sce$chip <- as.character(sce$chip)
-plotReducedDim(sce, dimred="PCA_coldata", colour_by = "chip")
+plotReducedDim(sce, dimred = "PCA_coldata", colour_by = "chip")
 ```
 
 ### Ratio between sum and gene counts
@@ -192,17 +192,17 @@ size. This will be very useful to delete the cells that have low gene counts but
 a relatively high umi count.
 
 ```{r ratio}
-if(!file.exists(here("processed", "sce_old_preliminary.RDS"))){
-sce$ratio_detected_sum <- sce$detected/sce$sum
-sce$outlier_ratio <- isOutlier(sce$ratio_detected_sum, type = "both")
+if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
+  sce$ratio_detected_sum <- sce$detected / sce$sum
+  sce$outlier_ratio <- isOutlier(sce$ratio_detected_sum, type = "both")
 }
 
 summary(sce$ratio_detected_sum)
-plotColData(sce, x="sum", y="detected", colour_by="ratio_detected_sum")
+plotColData(sce, x = "sum", y = "detected", colour_by = "ratio_detected_sum")
 # Plot an histogram with the ratio between umi and gene counts
 hist(
-    sce$ratio_detected_sum,
-    breaks = 100
+  sce$ratio_detected_sum,
+  breaks = 100
 )
 ```
 
@@ -212,9 +212,8 @@ of genes expressed and the number of umi.
 
 ```{r ratio-plots}
 # Use the is outlier function from scater to see the cutoffs suggestions
-plotColData(sce, x="sum", y="detected", colour_by="outlier_ratio")
+plotColData(sce, x = "sum", y = "detected", colour_by = "outlier_ratio")
 attr(sce$outlier_ratio, "thresholds")
-
 ```
 
 The suggestions here are very reasonable, it is not enough to delete all the
@@ -244,37 +243,37 @@ bit high compared with other datasets but it is already deleting
 Here we decide the new thersholds.
 
 ```{r fiter-sce}
-if(!file.exists(here("processed", "sce_old_preliminary.RDS"))){
-# New thresholds
-discard_lib_high <- sce$sum > 25000
-discard_expr_high <- outlier_expr_high
-discard_expr_low <- outlier_expr_low
-discard_lib_low <- outlier_lib_low
-discard_ratio <- sce$outlier_ratio
-discard_mt <- outlier_mt
-sce$discard <- discard_lib_high | discard_expr_high | discard_expr_low | discard_lib_low | discard_ratio | discard_mt 
+if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
+  # New thresholds
+  discard_lib_high <- sce$sum > 25000
+  discard_expr_high <- outlier_expr_high
+  discard_expr_low <- outlier_expr_low
+  discard_lib_low <- outlier_lib_low
+  discard_ratio <- sce$outlier_ratio
+  discard_mt <- outlier_mt
+  sce$discard <- discard_lib_high | discard_expr_high | discard_expr_low | discard_lib_low | discard_ratio | discard_mt
 
-# Create a summary with the number of cells deleted and the thresholds
+  # Create a summary with the number of cells deleted and the thresholds
 
-summary_discard <- data.frame(
-  lib_size_high = c(sum(discard_lib_high), 25000),
-  expression_high = c(sum(discard_expr_high), attr(outlier_expr_high, "thresholds")[2]),
-  lib_size_low = c(sum(discard_lib_low),attr(outlier_lib_low, "thresholds")[1]),
-  expression_low = c(sum(discard_expr_low), attr(outlier_expr_low, "thresholds")[1]),
-  mt_pct = c(sum(discard_mt),attr(outlier_mt, "thresholds")[2]),
-  total = c(sum(sce$discard), NA)
-)
+  summary_discard <- data.frame(
+    lib_size_high = c(sum(discard_lib_high), 25000),
+    expression_high = c(sum(discard_expr_high), attr(outlier_expr_high, "thresholds")[2]),
+    lib_size_low = c(sum(discard_lib_low), attr(outlier_lib_low, "thresholds")[1]),
+    expression_low = c(sum(discard_expr_low), attr(outlier_expr_low, "thresholds")[1]),
+    mt_pct = c(sum(discard_mt), attr(outlier_mt, "thresholds")[2]),
+    total = c(sum(sce$discard), NA)
+  )
 
-row.names(summary_discard) <- c("Cells filtered", "Threshold")
-write.csv(summary_discard, here("outs", "reason_for_discard.csv"))
-# Save the object at this stage with the label "preliminary analysis" 
-# As only annotation addition has been done, without deleting anything yet.
-saveRDS(sce, here("processed", "sce_old_preliminary.RDS"))}else{
+  row.names(summary_discard) <- c("Cells filtered", "Threshold")
+  write.csv(summary_discard, here("outs", "reason_for_discard.csv"))
+  # Save the object at this stage with the label "preliminary analysis"
+  # As only annotation addition has been done, without deleting anything yet.
+  saveRDS(sce, here("processed", "sce_old_preliminary.RDS"))
+} else {
 
 }
 summary_discard <- read.csv(here("outs", "reason_for_discard.csv"))
 summary_discard
-
 ```
 
 ## QC with new thresholds
@@ -284,26 +283,26 @@ Bellow we are going to plot the same plots as before with the new thresholds
 ### Violin plots
 
 ```{r umi-discard}
-plotColData(sce, x="Sample", y="sum", colour_by="discard") + 
-  ggtitle("Total count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-plotColData(sce, x="Sample", y="sum", colour_by="discard") + 
-  scale_y_log10() + ggtitle("Total count log scale") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plotColData(sce, x = "Sample", y = "sum", colour_by = "discard") +
+  ggtitle("Total count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+plotColData(sce, x = "Sample", y = "sum", colour_by = "discard") +
+  scale_y_log10() + ggtitle("Total count log scale") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r detected-discard}
-plotColData(sce, x="Sample", y="detected", colour_by="discard") + 
-  scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plotColData(sce, x = "Sample", y = "detected", colour_by = "discard") +
+  scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r mithocondrial-discard}
-plotColData(sce, x="Sample", y="subsets_mt_percent", colour_by="discard") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+plotColData(sce, x = "Sample", y = "subsets_mt_percent", colour_by = "discard") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ### Scatter plots
 
 ```{r scatterplots-discard}
-plotColData(sce, x="sum", y="subsets_mt_percent", colour_by="discard")
-plotColData(sce, x="sum", y="detected", colour_by="discard")
+plotColData(sce, x = "sum", y = "subsets_mt_percent", colour_by = "discard")
+plotColData(sce, x = "sum", y = "detected", colour_by = "discard")
 ```
 
 # Gene QC
@@ -318,7 +317,7 @@ poor quality cells.
 genes_beforeqc <- dim(sce)[1]
 keep_feature <- rowSums(counts(sce) > 0) > 1
 sce <- sce[keep_feature, ]
-genes_beforeqc -dim(sce)[1] 
+genes_beforeqc - dim(sce)[1]
 ```
 
 This way we deleted `r genes_beforeqc -dim(sce)[1]` genes and kept
@@ -339,7 +338,7 @@ plotHighestExprs(sce, exprs_values = "counts")
 # Create new filetered object
 
 ```{r}
-if(!file.exists(here("processed", "sce_old_QC.RDS"))) {
+if (!file.exists(here("processed", "sce_old_QC.RDS"))) {
   sce <- sce[, sce$discard == FALSE]
   saveRDS(sce, here("processed", "sce_old_QC.RDS"))
 }
