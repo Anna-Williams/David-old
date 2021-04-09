@@ -35,7 +35,11 @@ such.
 ```{r gene-names}
 if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
   # obtain full genenames
-  genename <- mapIds(org.Mm.eg.db, keys = rownames(sce), keytype = "ENSEMBL", column = c("GENENAME"))
+  genename <- mapIds(org.Mm.eg.db,
+                     keys = rownames(sce),
+                     keytype = "ENSEMBL",
+                     column = c("GENENAME")
+                     )
   # Use the symbols as rownames
   # first make gene names unique
   # TODO: save duplicate gene name list
@@ -81,10 +85,14 @@ if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
 
   # Visualize the thresholds and the cells deleted by each parametre
   summary_outlier <- data.frame(
-    lib_size_high = c(sum(outlier_lib_high), attr(outlier_lib_high, "thresholds")[2]),
-    expression_high = c(sum(outlier_expr_high), attr(outlier_expr_high, "thresholds")[2]),
-    lib_size_low = c(sum(outlier_lib_low), attr(outlier_lib_low, "thresholds")[1]),
-    expression_low = c(sum(outlier_expr_low), attr(outlier_expr_low, "thresholds")[1]),
+    lib_size_high = c(sum(outlier_lib_high),
+                      attr(outlier_lib_high, "thresholds")[2]),
+    expression_high = c(sum(outlier_expr_high),
+                        attr(outlier_expr_high, "thresholds")[2]),
+    lib_size_low = c(sum(outlier_lib_low),
+                     attr(outlier_lib_low, "thresholds")[1]),
+    expression_low = c(sum(outlier_expr_low),
+                       attr(outlier_expr_low, "thresholds")[1]),
     mt_pct = c(sum(outlier_mt), attr(outlier_mt, "thresholds")[2]),
     total = c(sum(outlier), NA)
   )
@@ -108,23 +116,29 @@ probably be manually adjusted to better fit the distribution of our data.
 
 ```{r}
 plotColData(sce, x = "Sample", y = "sum", colour_by = "outlier") +
-  ggtitle("Total count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  ggtitle("Total count") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 plotColData(sce, x = "Sample", y = "sum", colour_by = "outlier") +
-  scale_y_log10() + ggtitle("Total count log scale") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  scale_y_log10() + ggtitle("Total count log scale") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r}
 plotColData(sce, x = "Sample", y = "detected", colour_by = "outlier") +
-  scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  scale_y_log10() + ggtitle("Detected Genes") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r}
 plotColData(sce, x = "Sample", y = "sum", colour_by = "chip") +
-  scale_y_log10() + ggtitle("total count by batch") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  scale_y_log10() + ggtitle("total count by batch") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r}
-plotColData(sce, x = "Sample", y = "subsets_mt_percent", colour_by = "outlier") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+plotColData(sce, x = "Sample", y = "subsets_mt_percent", colour_by = "outlier") +
+  ggtitle("Mitocchondrial percentatge") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ### Histograms
@@ -251,15 +265,19 @@ if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
   discard_lib_low <- outlier_lib_low
   discard_ratio <- sce$outlier_ratio
   discard_mt <- outlier_mt
-  sce$discard <- discard_lib_high | discard_expr_high | discard_expr_low | discard_lib_low | discard_ratio | discard_mt
+  sce$discard <- discard_lib_high | discard_expr_high | discard_expr_low |
+    discard_lib_low | discard_ratio | discard_mt
 
   # Create a summary with the number of cells deleted and the thresholds
 
   summary_discard <- data.frame(
     lib_size_high = c(sum(discard_lib_high), 25000),
-    expression_high = c(sum(discard_expr_high), attr(outlier_expr_high, "thresholds")[2]),
-    lib_size_low = c(sum(discard_lib_low), attr(outlier_lib_low, "thresholds")[1]),
-    expression_low = c(sum(discard_expr_low), attr(outlier_expr_low, "thresholds")[1]),
+    expression_high = c(sum(discard_expr_high),
+                        attr(outlier_expr_high, "thresholds")[2]),
+    lib_size_low = c(sum(discard_lib_low),
+                     attr(outlier_lib_low, "thresholds")[1]),
+    expression_low = c(sum(discard_expr_low),
+                       attr(outlier_expr_low, "thresholds")[1]),
     mt_pct = c(sum(discard_mt), attr(outlier_mt, "thresholds")[2]),
     total = c(sum(sce$discard), NA)
   )
@@ -284,18 +302,23 @@ Bellow we are going to plot the same plots as before with the new thresholds
 
 ```{r umi-discard}
 plotColData(sce, x = "Sample", y = "sum", colour_by = "discard") +
-  ggtitle("Total count") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  ggtitle("Total count") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 plotColData(sce, x = "Sample", y = "sum", colour_by = "discard") +
-  scale_y_log10() + ggtitle("Total count log scale") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  scale_y_log10() + ggtitle("Total count log scale") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r detected-discard}
 plotColData(sce, x = "Sample", y = "detected", colour_by = "discard") +
-  scale_y_log10() + ggtitle("Detected Genes") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  scale_y_log10() + ggtitle("Detected Genes") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ```{r mithocondrial-discard}
-plotColData(sce, x = "Sample", y = "subsets_mt_percent", colour_by = "discard") + ggtitle("Mitocchondrial percentatge") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+plotColData(sce, x = "Sample", y = "subsets_mt_percent", colour_by = "discard") +
+  ggtitle("Mitocchondrial percentatge") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 ### Scatter plots
