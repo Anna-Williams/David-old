@@ -1,0 +1,304 @@
+---
+title: "Normalisation"
+author: "NadineBestard"
+date: "08/03/2021"
+output: html_document
+---
+
+# Set-up
+```{r set-up, message=FALSE, warning=FALSE}
+library(here) # for reproducible paths
+library(SingleCellExperiment)
+library(scater) # For qc and visualisation
+library(scran) # For normalisation
+library(Matrix) # For log transorming the raw data
+library(ggplot2) # To add titles to plots
+```
+
+
+```{r matlog2}
+# Adapted function from VISION to log tranform sparse matrix
+# I could not download the package
+matLog2 <- function(spmat, scale = FALSE, scaleFactor = 1e6) {
+
+
+    if (scale == TRUE) {
+        spmat <- t( t(spmat) / colSums(spmat)) * scaleFactor
+    }
+
+    if (is(spmat, "sparseMatrix")) {
+        matsum <- summary(spmat)
+
+        logx <- log2(matsum$x + 1)
+
+        logmat <- sparseMatrix(i = matsum$i, j = matsum$j,
+                               x = logx, dims = dim(spmat),
+                               dimnames = dimnames(spmat))
+    } else {
+        logmat <- log2(spmat + 1)
+    }
+
+
+    return(logmat)
+
+}
+
+```
+
+```{r age}
+age <- "old"
+```
+
+# Normalisation by deconvolution
+
+In order to correct for systematic differences in sequencing coverage between 
+libraries we will normalise the dataset. This involves dividing all counts for
+each cell by a cell-specific scaling factor, often called a “size factor” 
+(Anders and Huber 2010). The assumption here is that any cell-specific bias 
+(e.g., in capture or amplification efficiency) affects all genes equally via
+scaling of the expected mean count for that cell. The size factor for each cell 
+represents the estimate of the relative bias in that cell, so division of its 
+counts by its size factor should remove that bias.
+
+Specifically we will used the deconvolution method available in the `scran` 
+package. This method allows to take in consideration the composition bias 
+between samples 
+[(Lun et al., 2016)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4848819/)
+
+```{r norm}
+# Only compute if first time
+if (!(file.exists(here("processed", age,  "sce_norm.RDS")))) {
+  sce <- readRDS(here("processed", age, "sce_QC.RDS"))
+  # For reproducibility
+  set.seed(100)
+  # Quick clustering to pool samples together and deal with 0 counts
+  quick_clusters <- quickCluster(sce)
+  # Calculate size factors
+  sce <- computeSumFactors(sce, cluster = quick_clusters, min.mean = 0.1)
+  # Check that there are not negative size factors
+  summary(sizeFactors(sce))
+  # Apply size factors and log transform them
+  sce <- logNormCounts(sce)
+  # Also log normalise the raw counts
+  assay(sce, "logcounts_raw") <- matLog2(counts(sce))
+  saveRDS(sce, here("processed", age,  "sce_norm.RDS"))
+} else{
+  sce <- readRDS(here("processed", age,  "sce_norm.RDS"))
+}
+```
+
+On top of normalisation the data is also log-transformed. The 
+log-transformation is useful as differences in the log-values represent log-fold
+changes in expression. Or in other words, which is more interesting - a gene
+that is expressed at an average count of 50 in cell type A and 10 in cell type
+B, or a gene that is expressed at an average count of 1100 in A and 1000 in B? 
+Log-transformation focuses on the former by promoting contributions from genes 
+with strong relative differences.
+
+# Assess Confunding factors impact
+
+## Variance Explained plots
+Variable-level metrics are computed by the getVarianceExplained() function 
+(before and after normalization). This calculates the percentage of variance of 
+each gene’s expression that is explained by each variable in the colData of the 
+SingleCellExperiment object. We can then use this to determine which experimental
+factors are contributing most to the variance in expression. This is useful for 
+diagnosing batch effects or to quickly verify that a treatment has an effect.
+
+The percentage of variance explained by a factor is on the x axis, and in the y 
+axis there is the density of the R-squared values across all genes.
+
+The "total" label is the total number of molecules, that correlates with the 
+detected number of genes, "detected".
+
+### Before normalisation
+
+Before normalisation it is expected that most variance will be explained by the
+sequencing depth, i.e. the total number of umis and the total number of genes
+
+```{r var}
+# Before normalisation
+# Only compute if first time
+if (!(file.exists(here("processed", age,  "variance_explained.RDS")))) {
+  # Calculate the matrix (time consuming step)
+  var <- getVarianceExplained(
+    sce,
+    exprs_values = "logcounts_raw",
+    variables = c(
+      "tissue",
+      "chip",
+      "Sample",
+      "age",
+      "subsets_mt_percent",
+      "detected",
+      "total"
+    )
+  )
+  saveRDS(var, here("processed", age,  "variance_explained.RDS"))
+  #If not just load created object
+} else {
+  var <- readRDS(here("processed", age,  "variance_explained.RDS"))
+}
+plotExplanatoryVariables(var)
+```
+
+### After normalisation
+
+We can see how there is less variance explained now by factors such as the 
+detected genes or the number of counts
+```{r var_norm}
+# After normalisation
+if (!(file.exists(here("processed", age,  "variance_explained_norm.RDS")
+))) {
+  var_norm <- getVarianceExplained(
+    sce,
+    variables = c(
+      "tissue",
+      "chip",
+      "Sample",
+      "age",
+      "subsets_mt_percent",
+      "detected",
+      "total"
+    )
+  )
+  saveRDS(var_norm, here("processed", age,  "variance_explained_norm.RDS"))
+} else{
+  var_norm <- readRDS(here("processed", age,  "variance_explained_norm.RDS"))
+}
+plotExplanatoryVariables(var_norm)
+
+# Again after normalisation but other parametres
+if (!(file.exists(
+  here("processed", age,  "variance_explained_norm_2.RDS")
+))) {
+  var_norm_2 <- getVarianceExplained(
+    sce,
+    variables = c(
+      "tissue",
+      "chip",
+      "age",
+      "genotype",
+      "mouse",
+      "total"
+    )
+  )
+  saveRDS(var_norm_2, here("processed", age,  "variance_explained_norm_2.RDS"))
+} else{
+  var_norm_2 <- readRDS(here("processed", age,  "variance_explained_norm_2.RDS"))
+}
+plotExplanatoryVariables(var_norm_2)
+```
+
+
+## Dimensional reduction
+
+Another way to assess the variance is with a PCA plot. 
+Here again we can see how the sequencing depth(sum) explains most 
+of the variance before the normalisation
+
+```{r}
+raw <- runPCA(sce, exprs_values = "logcounts_raw")
+plotPCA(raw, colour_by= "chip", size_by="sum") + ggtitle("Before normalisation")
+
+sce <- runPCA(sce)
+plotPCA(sce, colour_by= "chip", size_by="sum") + ggtitle("After normalisation")
+plotPCA(sce, colour_by= "chip", point_size=0.1) + 
+  ggtitle("After normalisation, small dots")
+
+```
+
+
+# Batch correction with MNN
+
+Combat was shown to outperform other batch correction methods for simple batch
+correction (Buttner et. al, 2019). However, this will also regress other 
+biological differences that are not well balanced between batches. Integration 
+techniques account for this fact, with the downside that it can lead to
+over-correction due to increased degrees of freedom of these non-linear methods. 
+
+We use a merge tree, useful for merging together batches that are known to be 
+more closely related before attempting difficult merges involving more dissimilar
+batches.
+```{r batch-correct}
+if (!(file.exists(
+  here("processed", age,  "sce_corrected.RDS")
+))) {
+set.seed(100)
+sce <- correctExperiments(sce,
+  batch = factor(sce$chip),
+  PARAM = FastMnnParam(
+  merge.order = list(
+    list(list("3","5"), list("4","6")), 
+    list("1","2")
+    )
+  )
+)
+  saveRDS(sce, here("processed", age,  "sce_corrected.RDS"))
+} else {
+   sce <- readRDS(here("processed", age,  "sce_corrected.RDS"))
+}
+```
+
+### Assess Confunding factors impact
+
+I have never seen this plot used after batch correction and I am not 100% sure (
+and I hope) it is incorrect. 
+```{r}
+# Only compute if first time
+if (!(file.exists(here("processed", age,  "variance_explained_corrected.RDS")))) {
+  # Log transfrom the corrected values
+  assay(sce, "log_reconstructed") <- matLog2(assay(sce, "reconstructed"))
+  # Calculate the matrix (time consuming step)
+  var_corrected <- getVarianceExplained(
+    sce,
+    exprs_values = "log_reconstructed",
+    variables = c(
+      "tissue",
+      "chip",
+      "age",
+      "genotype",
+      "mouse",
+      "total"
+    )
+  )
+  saveRDS(var_corrected, here("processed", age,  "variance_explained_corrected.RDS"))
+  #If not just load created object
+} else{
+  var_corrected <- readRDS(here("processed", age,  "variance_explained_corrected.RDS"))
+}
+plotExplanatoryVariables(var_corrected)
+```
+
+
+```{r}
+plotReducedDim(sce, colour_by= "chip", point_size=0.1, dimred = "corrected") + 
+      ggtitle("After batch correction, small dots")
+```
+
+One useful diagnostic is the proportion of variance within each batch that is 
+lost during MNN correction. Specifically, this refers to the within-batch variance 
+that is removed during orthogonalization with respect to the average correction 
+vector at each merge step. This is in the metadata, which contains a matrix of 
+the variance lost in each batch (column) at each merge step (row).
+
+Large proportions of lost variance (>10%) suggest that correction is removing
+genuine biological heterogeneity. This would occur due to violations of the 
+assumption of orthogonality between the batch effect and the biological subspace.
+In this case, the proportion of lost variance is small, indicating that 
+non-orthogonality is not a major concern.
+
+```{r}
+metadata(sce)$merge.info$lost.var
+```
+
+
+## Session Info
+
+<details>
+  <summary>Click to expand </summary>
+```{r session-info}
+sessionInfo()
+```
+
+</details>
