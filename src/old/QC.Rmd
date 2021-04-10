@@ -97,11 +97,11 @@ if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
     total = c(sum(outlier), NA)
   )
   row.names(summary_outlier) <- c("Cells filtered", "Threshold")
-  write.csv(summary_outlier, here("outs", "autofilter_summary.csv"))
+  write.csv(summary_outlier, here("outs", "old", "autofilter_summary.csv"))
   # Add if it is an outlier to the metadata
   sce$outlier <- outlier
 } else {
-  summary_outlier <- read.csv(here("outs", "autofilter_summary.csv"))
+  summary_outlier <- read.csv(here("outs", "old", "autofilter_summary.csv"))
 }
 summary_outlier
 ```
@@ -283,14 +283,14 @@ if (!file.exists(here("processed", "sce_old_preliminary.RDS"))) {
   )
 
   row.names(summary_discard) <- c("Cells filtered", "Threshold")
-  write.csv(summary_discard, here("outs", "reason_for_discard.csv"))
+  write.csv(summary_discard, here("outs", "old", "reason_for_discard_QC.csv"))
   # Save the object at this stage with the label "preliminary analysis"
   # As only annotation addition has been done, without deleting anything yet.
   saveRDS(sce, here("processed", "sce_old_preliminary.RDS"))
 } else {
 
 }
-summary_discard <- read.csv(here("outs", "reason_for_discard.csv"))
+summary_discard <- read.csv(here("outs", "old", "reason_for_discard_QC.csv"))
 summary_discard
 ```
 
