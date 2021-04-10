@@ -22,6 +22,7 @@ library(org.Mm.eg.db) # To annotate the genenames
 
 ```{r load-sce}
 sce <- readRDS(here("processed", "sce_old.RDS"))
+age <- "old"
 ```
 
 The object has `r dim(sce)[1]` genes and `r dim(sce)[2]` cells before filtering
@@ -33,7 +34,7 @@ ensembl notation is not very handy. And then save the mitochondrial genes as
 such.
 
 ```{r gene-names}
-if (!file.exists(here("processed", "old", "sce_preliminary.RDS"))) {
+if (!file.exists(here("processed", age, "sce_preliminary.RDS"))) {
   # obtain full genenames
   genename <- mapIds(org.Mm.eg.db,
                      keys = rownames(sce),
@@ -52,7 +53,7 @@ if (!file.exists(here("processed", "old", "sce_preliminary.RDS"))) {
   # Subset the mitochondrial genes
   is_mito <- grepl("^mt-", rownames(sce))
 } else {
-  sce <- readRDS(here( "processed", "old", "sce_preliminary.RDS"))
+  sce <- readRDS(here( "processed", age, "sce_preliminary.RDS"))
 }
 ```
 
@@ -66,7 +67,7 @@ absolute deviation (MAD). When using this function with low number a log
 transformation is added, that prevents negative thresholds.
 
 ```{r addQC}
-if (!file.exists(here( "processed", "old", "sce_preliminary.RDS"))) {
+if (!file.exists(here( "processed", age, "sce_preliminary.RDS"))) {
   sce <- addPerCellQC(sce, subsets = list(mt = is_mito))
 
   # Automated outlier detection
@@ -97,11 +98,11 @@ if (!file.exists(here( "processed", "old", "sce_preliminary.RDS"))) {
     total = c(sum(outlier), NA)
   )
   row.names(summary_outlier) <- c("Cells filtered", "Threshold")
-  write.csv(summary_outlier, here("outs", "old", "autofilter_summary.csv"))
+  write.csv(summary_outlier, here("outs", age, "autofilter_summary.csv"))
   # Add if it is an outlier to the metadata
   sce$outlier <- outlier
 } else {
-  summary_outlier <- read.csv(here("outs", "old", "autofilter_summary.csv"))
+  summary_outlier <- read.csv(here("outs", age, "autofilter_summary.csv"))
 }
 summary_outlier
 ```
@@ -191,7 +192,7 @@ Here we run a PCA using the information in the metadata instead of the gene
 expression. It is useful to visualize the QC parametres.
 
 ```{r PCA}
-if (!file.exists(here( "processed", "old", "sce_preliminary.RDS"))) {
+if (!file.exists(here( "processed", age, "sce_preliminary.RDS"))) {
   sce <- runColDataPCA(sce, variables = c("sum", "detected", "subsets_mt_percent"))
 }
 plotReducedDim(sce, dimred = "PCA_coldata", colour_by = "Sample")
@@ -206,7 +207,7 @@ size. This will be very useful to delete the cells that have low gene counts but
 a relatively high umi count.
 
 ```{r ratio}
-if (!file.exists(here( "processed", "old", "sce_preliminary.RDS"))) {
+if (!file.exists(here( "processed", age, "sce_preliminary.RDS"))) {
   sce$ratio_detected_sum <- sce$detected / sce$sum
   sce$outlier_ratio <- isOutlier(sce$ratio_detected_sum, type = "both")
 }
@@ -257,7 +258,7 @@ bit high compared with other datasets but it is already deleting
 Here we decide the new thersholds.
 
 ```{r fiter-sce}
-if (!file.exists(here( "processed", "old", "sce_preliminary.RDS"))) {
+if (!file.exists(here( "processed", age, "sce_preliminary.RDS"))) {
   # New thresholds
   discard_lib_high <- sce$sum > 25000
   discard_expr_high <- outlier_expr_high
@@ -283,14 +284,14 @@ if (!file.exists(here( "processed", "old", "sce_preliminary.RDS"))) {
   )
 
   row.names(summary_discard) <- c("Cells filtered", "Threshold")
-  write.csv(summary_discard, here("outs", "old", "reason_for_discard_QC.csv"))
+  write.csv(summary_discard, here("outs", age, "reason_for_discard_QC.csv"))
   # Save the object at this stage with the label "preliminary analysis"
   # As only annotation addition has been done, without deleting anything yet.
-  saveRDS(sce, here( "processed", "old", "sce_preliminary.RDS"))
+  saveRDS(sce, here( "processed", age, "sce_preliminary.RDS"))
 } else {
 
 }
-summary_discard <- read.csv(here("outs", "old", "reason_for_discard_QC.csv"))
+summary_discard <- read.csv(here("outs", age, "reason_for_discard_QC.csv"))
 summary_discard
 ```
 
@@ -361,9 +362,9 @@ plotHighestExprs(sce, exprs_values = "counts")
 # Create new filetered object
 
 ```{r}
-if (!file.exists(here( "processed", "old", "sce_QC.RDS"))) {
+if (!file.exists(here( "processed", age, "sce_QC.RDS"))) {
   sce <- sce[, sce$discard == FALSE]
-  saveRDS(sce, here( "processed", "old", "sce_QC.RDS"))
+  saveRDS(sce, here( "processed", age, "sce_QC.RDS"))
 }
 ```
 
