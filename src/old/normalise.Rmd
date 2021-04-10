@@ -125,10 +125,9 @@ if (!(file.exists(here("processed", age,  "variance_explained.RDS")))) {
     sce,
     exprs_values = "logcounts_raw",
     variables = c(
-      "tissue",
       "chip",
-      "Sample",
-      "age",
+      "genotype",
+      "mouse",
       "subsets_mt_percent",
       "detected",
       "total"
@@ -153,10 +152,9 @@ if (!(file.exists(here("processed", age,  "variance_explained_norm.RDS")
   var_norm <- getVarianceExplained(
     sce,
     variables = c(
-      "tissue",
       "chip",
-      "Sample",
-      "age",
+      "genotype",
+      "mouse",
       "subsets_mt_percent",
       "detected",
       "total"
@@ -167,27 +165,6 @@ if (!(file.exists(here("processed", age,  "variance_explained_norm.RDS")
   var_norm <- readRDS(here("processed", age,  "variance_explained_norm.RDS"))
 }
 plotExplanatoryVariables(var_norm)
-
-# Again after normalisation but other parametres
-if (!(file.exists(
-  here("processed", age,  "variance_explained_norm_2.RDS")
-))) {
-  var_norm_2 <- getVarianceExplained(
-    sce,
-    variables = c(
-      "tissue",
-      "chip",
-      "age",
-      "genotype",
-      "mouse",
-      "total"
-    )
-  )
-  saveRDS(var_norm_2, here("processed", age,  "variance_explained_norm_2.RDS"))
-} else{
-  var_norm_2 <- readRDS(here("processed", age,  "variance_explained_norm_2.RDS"))
-}
-plotExplanatoryVariables(var_norm_2)
 ```
 
 
