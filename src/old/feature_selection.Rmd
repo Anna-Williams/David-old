@@ -81,7 +81,30 @@ it is remonded using between 20 and 40 PCs.
 I will keep 25 PCs, as there is a drop between 25 and 26 PCs in 
 the elbow plot. 
 
-## UMAP
+```{r}
+#keep the previous dimensional reduction just in case
+reducedDim(sce, "PCA_all") <- reducedDim(sce, "PCA")
+# And replace the default PCA with the reduced PCs
+reducedDim(sce, "PCA") <- reducedDim(sce, "PCA")[,1:25]
+```
+
+## Visualisation
+For visualisation, reduce to 2 dimensions. Non linear reductions.
+### UMAP
+```{r}
+sce <- runUMAP(sce, dimred="PCA")
+plotReducedDim(sce, dimred="UMAP", colour_by="genotype", point_size=0.1, point_alpha = 0.3)
+```
+### tSNE
+```{r}
+sce <- runTSNE(sce, dimred="PCA")
+plotReducedDim(sce, dimred="TSNE", colour_by="genotype", point_size=0.1, point_alpha = 0.3)
+```
+
+## Save objects
+```{r}
+saveRDS(sce, here("processed", age, "sce_dimred.RDS"))
+```
 
 ## Session Info
 
