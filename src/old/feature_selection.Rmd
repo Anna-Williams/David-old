@@ -12,6 +12,7 @@ The workflow and explanations bellow are from [OSCA](https://bioconductor.org/bo
 ```{r set-up, message=FALSE, warning=FALSE}
 library(SingleCellExperiment)
 library(scran) # For feature selcetion
+library(scater) # for pca
 library(here) #reproducible paths
 ```
 
