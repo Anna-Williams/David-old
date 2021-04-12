@@ -1,0 +1,59 @@
+---
+title: "Feature Selection"
+author: "NadineBestard"
+date: "10/03/2021"
+output: html_document
+---
+# Set-up
+```{r set-up, message=FALSE, warning=FALSE}
+library(SingleCellExperiment)
+library(scran) # For feature selcetion
+library(here) #reproducible paths
+```
+
+```{r}
+age <- "old"
+```
+
+```{r load-sce}
+sce <- readRDS(here("processed", age, "sce_norm.RDS"))
+```
+
+## Motivation
+
+We often use scRNA-seq data in exploratory analyses to characterize heterogeneity across cells. Procedures like clustering and dimensionality reduction compare cells based on their gene expression profiles, which involves aggregating per-gene differences into a single (dis)similarity metric between a pair of cells. The choice of genes to use in this calculation has a major impact on the behavior of the metric and the performance of downstream methods. We want to select genes that contain useful information about the biology of the system while removing genes that contain random noise (Highly variable genes, HVGs). This aims to preserve interesting biological structure without the variance that obscures that structure, and to reduce the size of the data to improve computational efficiency of later steps.
+
+## Quantify per-gene variation
+
+We quantify per-gene variation computing the variance of the log-normalized expression values (referred to as “log-counts” for simplicity) for each gene across all cells in the population (A. T. L. Lun, McCarthy, and Marioni 2016).
+We use modelGeneVar() that does also corrects for the abundance of each gene.
+
+```{r}
+#The density weights are removed because the genes
+# with highest mean abundance are also HVG, this avoids overfiting
+gene_var_df <- modelGeneVar(sce, density.weights=FALSE )
+gene_var <- metadata(gene_var_df)
+plot(gene_var$mean, gene_var$var, xlab= "Mean of log-expression", ylab= "Variance of log-expression")
+curve(gene_var$trend(x), lwd=2, add=T, col = "red")
+```
+
+## Select the HVGs
+
+The next step is to select the subset of HVGs to use in downstream analyses. The simplest HVG selection strategy is to take the top X genes with the largest values for the relevant variance metric.
+Here I select the top 15 % of genes.
+
+```{r}
+hvgs <- getTopHVGs(gene_var_df, prop=0.15)
+```
+
+This leaves us with `r length(hvgs)` highly variable genes. 
+
+## Session Info
+
+<details>
+  <summary>Click to expand </summary>
+```{r session-info}
+sessionInfo()
+```
+
+</details>
