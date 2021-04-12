@@ -225,8 +225,8 @@ sce <- correctExperiments(sce,
 
 ### Assess Confunding factors impact
 
-I have never seen this plot used after batch correction and I am not 100% sure (
-and I hope) it is incorrect.
+I have never seen this plot used after batch correction and I am not 100% sure it
+is correct.
 
 ```{r}
 # Only compute if first time
@@ -261,8 +261,10 @@ sce <- runUMAP(sce, name="UMAP_corrected", dimred="PCA_corrected")
 plotReducedDim(sce, colour_by= "chip", point_size=0.1, dimred = "UMAP_corrected") + 
       ggtitle("After batch correction, small dots")
 ```
+
 It looks almost worst than before batch correction, we will keep this without any
 kind of batch correction.
+
 ## Session Info
 
 <details>
