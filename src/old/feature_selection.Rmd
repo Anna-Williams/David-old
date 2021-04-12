@@ -13,7 +13,6 @@ The workflow and explanations bellow are from [OSCA](https://bioconductor.org/bo
 library(SingleCellExperiment)
 library(scran) # For feature selcetion
 library(here) #reproducible paths
-library(PCAtools) # find elbow point
 ```
 
 ```{r}
@@ -73,14 +72,6 @@ pct_var <- attr(reducedDim(sce, "PCA"), "percentVar")
 plot(pct_var, log="y", xlab="PC", ylab="pct variance explained")
 ```
 
-```{r}
-elbow <- PCAtools::findElbowPoint(pct_var)
-```
-```{r}
-horn <- PCAtools::parallelPCA(logcounts(sce)[hvgs,],
-    BSPARAM=BiocSingular::IrlbaParam(), niters=10)
-horn$n
-```
 
 I tried to use some of the PCAtools features to estimate
 the number of PCs, such as the elbow and  Horn's parallel analysis, but both yeild a result lower than 15 PCs. These 
