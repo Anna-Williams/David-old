@@ -202,10 +202,13 @@ plotReducedDim(sce, colour_by= "chip", point_size=0.1, dimred = "UMAP") +
 
 Combat, a linear method for batch correction, was shown to outperform other
 batch correction methods for simple batch
-correction (Buttner et. al, 2019). The function rescaleBataches() is roughly
-equivalent to applying a linear regression to the log-expression values per
-gene, with some adjustments to improve performance and efficiency, keeping the
-sparcity of the matrice. 
+correction (Buttner et. al, 2019). 
+<!-- The function rescaleBataches() is roughly -->
+<!-- equivalent to applying a linear regression to the log-expression values per -->
+<!-- gene, with some adjustments to improve performance and efficiency, keeping the -->
+<!-- sparcity of the matrice.  -->
+regressBatches is a linear correction implemented in the Bioconductor batchelor
+package. 
 <!-- regressBatches does have the advantage of indicating wich parametres to NOT regress, but it needs a design matrix, last time I tried to build one I ran out of space, because it does not preserve the saprcity of the matrix, and as a dense matrix is very big.  -->
 
 ```{r batch-correct}
@@ -215,7 +218,7 @@ if (!(file.exists(
 set.seed(100)
 sce <- correctExperiments(sce,
   batch = factor(sce$chip),
-  PARAM = RescaleParam()
+  PARAM = RegressParam()
   )
   saveRDS(sce, here("processed", age,  "sce_corrected.RDS"))
 } else {
