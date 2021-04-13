@@ -75,9 +75,9 @@ plot(pct_var, log="y", xlab="PC", ylab="pct variance explained")
 
 
 I tried to use some of the PCAtools features to estimate
-the number of PCs, such as the elbow and  Horn's parallel analysis, but both yeild a result lower than 15 PCs. These 
+the number of PCs, such as the elbow and  Horn's parallel analysis, but both yield a result lower than 15 PCs. These 
 methods tend to underestimate the number of PCs to use, and 
-it is remonded using between 20 and 40 PCs. 
+it is recommended using between 20 and 40 PCs. 
 I will keep 25 PCs, as there is a drop between 25 and 26 PCs in 
 the elbow plot. 
 
@@ -90,11 +90,13 @@ reducedDim(sce, "PCA") <- reducedDim(sce, "PCA")[,1:25]
 
 ## Visualisation
 For visualisation, reduce to 2 dimensions. Non linear reductions.
+
 ### UMAP
 ```{r}
 sce <- runUMAP(sce, dimred="PCA")
 plotReducedDim(sce, dimred="UMAP", colour_by="genotype", point_size=0.1, point_alpha = 0.3)
 ```
+
 ### tSNE
 ```{r}
 sce <- runTSNE(sce, dimred="PCA")
