@@ -55,6 +55,12 @@ rowSubset(sce) <- hvgs
 
 This leaves us with `r length(hvgs)` highly variable genes.
 
+```{r}
+plot(gene_var$mean, gene_var$var, xlab= "Mean of log-expression", ylab= "Variance of log-expression")
+points(gene_var$mean[hvgs], gene_var$var[hvgs], col = "red")
+curve(gene_var$trend(x), lwd=2, add=T, col = "red")
+```
+
 # Dimensionality reduction
 
 ## Motivation
