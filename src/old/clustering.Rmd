@@ -1,0 +1,44 @@
+---
+title: "Clustering"
+author: "NadineBestard"
+date: "06/05/2021"
+output: html_document
+---
+### Set-up
+
+# Set-up
+
+The workflow and explanations bellow are from [OSCA](https://bioconductor.org/books/release/OSCA/dimensionality-reduction.html)
+
+```{r set-up, message=FALSE, warning=FALSE}
+library(SingleCellExperiment)
+library(here) #reproducible paths
+library(scater) # Plot dimred
+#library(scran) # SNN graph
+library(bluster) # Clustering 
+```
+
+```{r}
+age <- "old"
+```
+
+```{r load-sce}
+sce <- readRDS(here("processed", age, "sce_dimred.RDS"))
+```
+
+### Motivation
+
+Clustering is an unsupervised learning procedure that is used in scRNA-seq data analysis to empirically define groups of cells with similar expression profiles. It is worth stressing the distinction between clusters and cell types. The former is an empirical construct while the latter is a biological truth (albeit a vaguely defined one). For this reason, questions like “what is the true number of clusters?” are usually meaningless. We can define as many clusters as we like, with whatever algorithm we like - each clustering will represent its own partitioning of the high-dimensional expression space, and is as “real” as any other clustering.
+It is helpful to realize that clustering, like a microscope, is simply a tool to explore the data. We can zoom in and out by changing the resolution of the clustering parameters, and we can experiment with different clustering algorithms to obtain alternative perspectives of the data.
+
+
+```{r}
+cluster_k10 <- clusterRows(reducedDim(sce, "PCA"), NNGraphParam(k=10))
+sce$cluster_k10 <- factor(cluster_k10)
+plotReducedDim(sce, "TSNE", colour_by = "cluster_k10", point_size=0.5, point_alpha = 0.3, text_by = "cluster_k10", text_size = 3)  + scale_color_hue() + ggtitle(paste("Clustering with k = ", "10"))
+# for(i in seq_along(c(50,40,30))){
+#   
+# }
+```
+
+
