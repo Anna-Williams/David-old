@@ -99,7 +99,7 @@ wrap_plots(list_plots) +  plot_annotation(title =  " Endothelial cells and peric
 </details>
 <details>
   <summary>Click to expand the Astrocytes marker plots</summary>
-```{r 3lines-feature-plots-2, cache=TRUE, fig.height=8}
+```{r 3lines-4-col-feature-plots, fig.height=8, fig.width=9, cache=TRUE}
 # Astrocytes
 
 list_plots <- lapply(c("Gja1",
@@ -115,7 +115,10 @@ list_plots <- lapply(c("Gja1",
                                     "Fgfr3"),
                      function(x)plotTSNE(sce, colour_by = x ))
 wrap_plots(list_plots) +  plot_annotation(title = "Astrocyte")
-            
+```
+
+
+```{r 3lines-feature-plots-2, cache=TRUE, fig.height=8}
 #Astrocyte markers as described in Zeisel et al. 2018 in the mouse for telencephalon and non-telencephalon astrocytes
 
 list_plots <- lapply(c( "Agt", 
@@ -135,7 +138,7 @@ wrap_plots(list_plots) +  plot_annotation(title = "Astrocyte mouse telecephalon"
 <details>
   <summary>Click to expand the Microglia marker plots</summary>
 
-```{r 3lines-feature-plots3, cache=TRUE, fig.height=10}
+```{r 3lines-feature-plots3, cache=TRUE, fig.height=8}
 #Microglia and macrophages
 
 list_plots <- lapply(c( "Cd74", 
@@ -154,7 +157,7 @@ wrap_plots(list_plots) +  plot_annotation(title = "Microglia and macrophages")
 </details>
 <details>
   <summary>Click to expand the Oligodendroglia marker plots</summary>
-```{r big-feature-plots4, cache=TRUE, fig.height=10}
+```{r big-feature-plots4, cache=TRUE, fig.height=8}
 #OPCs
 
 list_plots <- lapply(c("Pdgfra", 
@@ -185,7 +188,7 @@ wrap_plots(list_plots) +  plot_annotation(title =  "Oligodendrocytes")
 </details>
 <details>
   <summary>Click to expand the ependymal marker plots</summary>
-```{r ependymal, fig.height=14, cache=TRUE}
+```{r ependymal, fig.height=8, fig.width=9, cache=TRUE}
 list_plots <- lapply(c("Vit", "Sox9", "Dynlrb2", "Ccdc153", "Rsph1", "Tm4sf1", "Pcp4l1", "Pcp4", "Hspa2", "Cd24a", "Mt2", "Chchd10"), 
            function(x)plotTSNE(sce, colour_by = x )) 
 wrap_plots(list_plots) +  plot_annotation(title =  "Ependymal")
