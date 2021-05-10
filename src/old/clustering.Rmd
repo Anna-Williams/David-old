@@ -79,4 +79,9 @@ if(!file.exists(here("processed", age, "sce_clusters.RDS"))){
 }
 ```
 
+### Cluster tree
+We use this visualisation to see the relationships between the clusters. The aim is to capture the redistribution of cells from one clustering to another at progressively higher resolutions, providing a convenient depiction of how clusters merge or split apart. 
+```{r fig.height=14, fig.width=14}
+clustree(sce, prefix = "cluster_k", edge_arrow = FALSE)
+```
 
