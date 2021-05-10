@@ -1,0 +1,236 @@
+---
+title: "Annotation"
+author: "NadineBestard"
+date: "30/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, message=FALSE, warning=FALSE}
+library(here) #reproducible paths
+library(scater) #feature plots
+library(patchwork) # agregate plots
+```
+
+```{r age}
+age <- "old"
+```
+
+```{r import}
+if (!file.exists(here("processed", age, "sce_anno_01.RDS"))) {
+  sce <- readRDS(here("processed", age, "sce_clusters.RDS"))
+}else{
+  sce <- readRDS(here("processed", age, "sce_anno_01.RDS"))
+}
+```
+
+## Annotation
+
+We make a first rough annotation using known markers for different celltypes. 
+
+<details>
+  <summary>Click to expand the Neurons marker plots</summary>
+```{r 4-feature-plots, cache=TRUE}
+#Neurons:
+list_plots <- lapply(c("Snap25", "Stmn2", "Rbfox3", "Gabrb2"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+
+wrap_plots(list_plots) +  plot_annotation(title = "Neurons")
+
+#Inhibitory neurons
+
+list_plots <- lapply(c("Gad1", "Gad2", "Slc32a1", "Pvalb"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title =  "Inhibitory Neurons")
+```
+
+
+```{r one-line, fig.height=4, cache=TRUE}
+# Excitatory neurons
+
+list_plots <- lapply(c("Satb2", "Slc12a6", "Slc17a7"),
+                     function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title =  "Exitatory Neurons")
+```
+
+
+```{r 4-plots, cache=TRUE}
+# RBFOX3 (and other Granulate cell markers)
+list_plots <- lapply(c("Cdh15", "Calb2", "Rbfox3", "Reln"),
+function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title =  "RBFO3+ Neurons")
+```
+
+</details>
+<details>
+  <summary>Click to expand the Stromal  marker plots</summary>
+```{r small-feature-plots2, cache=TRUE}
+#Stromal
+
+list_plots <- lapply(c( "Lamb1" , 
+                                     "Hspg2", 
+                                     "Col4a1", 
+                                     "Fn1", 
+                                     "Lama2"),
+            function(x) plotTSNE(sce, colour_by = x ))
+
+wrap_plots(list_plots) +  plot_annotation(title =  "Stromal")
+```
+
+
+
+
+```{r 3lines-feature-plots, cache=TRUE, fig.height=8}
+# Endothelial cells and pericytes
+
+list_plots <- lapply(c( "Cldn5",   
+                                     "Icam2",
+                                     "Pdgfrb", 
+                                     "Notch3", 
+                                     "Vwf",
+                                     "Flt1",
+                                     "Mecom"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title =  " Endothelial cells and pericytes")
+```
+</details>
+<details>
+  <summary>Click to expand the Astrocytes marker plots</summary>
+```{r 3lines-feature-plots-2, cache=TRUE, fig.height=8}
+# Astrocytes
+
+list_plots <- lapply(c("Gja1",
+                                    "Aqp4", 
+                                    "Glul", 
+                                    "Sox9", 
+                                    "Ndrg2", 
+                                    "Gfap", 
+                                    "Aldh1a1", 
+                                    "Aldh1l1", 
+                                    "Vim", 
+                                    "Apoe", 
+                                    "Fgfr3"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title = "Astrocyte")
+            
+#Astrocyte markers as described in Zeisel et al. 2018 in the mouse for telencephalon and non-telencephalon astrocytes
+
+list_plots <- lapply(c( "Agt", 
+                                     "Mfge8",  
+                                     "Slc6a11",
+                                     "Slc6a9", 
+                                     "Gdf10",
+                                     "Islr",
+                                     "Gfap",
+                                     "Aqp4")  ,
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title = "Astrocyte mouse telecephalon")
+```
+
+</details>
+
+<details>
+  <summary>Click to expand the Microglia marker plots</summary>
+
+```{r 3lines-feature-plots3, cache=TRUE, fig.height=10}
+#Microglia and macrophages
+
+list_plots <- lapply(c( "Cd74", 
+                                     "Spi1", 
+                                     "Mrc1", 
+                                     "Tmem119", 
+                                     "Cx3cr1", 
+                                     "Aif1",
+                                     "P2ry12",
+                                     "C1qc",
+                                     "C1qa"),
+            function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title = "Microglia and macrophages")
+```
+
+</details>
+<details>
+  <summary>Click to expand the Oligodendroglia marker plots</summary>
+```{r big-feature-plots4, cache=TRUE, fig.height=10}
+#OPCs
+
+list_plots <- lapply(c("Pdgfra", 
+                                    "Cspg4", 
+                                    "Gpr17", 
+                                    "Ptprz1",
+                                    "Olig1", 
+                                    "Olig2", 
+                                    "Pcdh15", 
+                                    "Ptgds",
+                                    "Bcan"),
+            function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title = "OPCS")
+            
+#Oligodendrocytes
+
+list_plots <- lapply(c("Plp1", 
+                                    "Cnp", 
+                                    "Mag", 
+                                    "Mog", 
+                                    "Mobp", 
+                                    "Mbp", 
+                                    "Sox10" ), 
+            function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title =  "Oligodendrocytes")
+```
+
+</details>
+<details>
+  <summary>Click to expand the ependymal marker plots</summary>
+```{r ependymal, fig.height=14, cache=TRUE}
+list_plots <- lapply(c("Vit", "Sox9", "Dynlrb2", "Ccdc153", "Rsph1", "Tm4sf1", "Pcp4l1", "Pcp4", "Hspa2", "Cd24a", "Mt2", "Chchd10"), 
+           function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title =  "Ependymal")
+
+```
+  
+</details>
+
+## Rename the Clusters with assigned Cell Types
+
+For this first annotation we will rename the levels from the k=60 clustering as 
+follows:
+1 	Microglia-Macrophages
+2	Endothelial-Pericytes
+3	Astrocytes
+4	OPC
+5	NA
+6	Astrocytes
+7	NA
+8	Astrocytes
+9 	Oligo
+10	NA
+11	NA
+12	Oligo
+13	NA
+14	Oligo
+15	Neuron
+16 	Microglia-Macrophages
+17	Oligo?
+18	Oligo
+19	OPC
+20	Endothelial-Pericytes
+21 	Microglia-Macrophages
+22	Endothelial-Pericytes
+23	Astrocytes
+24 	Microglia-Macrophages
+
+```{r}
+plotTSNE(sce, colour_by = "cluster_k60", text_by = "cluster_k60") + scale_color_hue()
+```
+
+```{r eval=FALSE, include=FALSE}
+sce$celltype <- sce$cluster_k60 
+# add the celltypes as described above in the correct order to replace the levels.
+levels(sce$celltype)<-c("Microglia-Macrophages", "Endothelial-Pericytes", "Astrocytes", "OPC", "NA", "Astrocytes", "NA", "Astrocytes", "Oligo", "NA", "NA", "Oligo", "NA", "Oligo", "Neuron", "Microglia-Macrophages", "Oligo?", "Oligo", "OPC", "Endothelial-Pericytes", "Microglia-Macrophages", "Endothelial-Pericytes", "Astrocytes", "Microglia-Macrophages")
+plotTSNE(sce, colour_by = "celltype", text_by = "cluster_k60") + scale_color_hue()
+```
+
