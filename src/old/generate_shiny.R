@@ -4,6 +4,10 @@ library(here)
 
 age <- "old" 
 sce <- readRDS(here("processed", age, "sce_anno.RDS"))
+#[provisional until I correct all the objects with the import.r modification]
+barcodes_mod <- paste0("1_", sce$Barcode)
+colnames(sce)<- barcodes_mod
+
 conf <- createConfig(sce)
 #Delete some unnecessary metadata
 conf <- delMeta(conf, meta.to.del = c( "subsets_mt_sum", "subsets_mt_detected",
