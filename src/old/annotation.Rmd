@@ -230,10 +230,11 @@ follows:
 plotTSNE(sce, colour_by = "cluster_k60", text_by = "cluster_k60") + scale_color_hue()
 ```
 
-```{r eval=FALSE, include=FALSE}
+```{r result}
 sce$celltype <- sce$cluster_k60 
 # add the celltypes as described above in the correct order to replace the levels.
 levels(sce$celltype)<-c("Microglia-Macrophages", "Endothelial-Pericytes", "Astrocytes", "OPC", "NA", "Astrocytes", "NA", "Astrocytes", "Oligo", "NA", "NA", "Oligo", "NA", "Oligo", "Neuron", "Microglia-Macrophages", "Oligo?", "Oligo", "OPC", "Endothelial-Pericytes", "Microglia-Macrophages", "Endothelial-Pericytes", "Astrocytes", "Microglia-Macrophages")
 plotTSNE(sce, colour_by = "celltype", text_by = "cluster_k60") + scale_color_hue()
+saveRDS(sce, here("processed", age, "sce_anno.RDS"))
 ```
 
