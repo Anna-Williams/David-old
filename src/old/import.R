@@ -22,7 +22,12 @@ metadata <- metadata[metadata$age == "old", ]
 sce <- read10xCounts(matrices, samples, version = "auto", col.names = TRUE)
 # add the metadata
 coldata <- colData(sce)
+# keep the rownames (same as colnames of sce)
+names <- row.names(coldata)
 coldata <- merge(x= coldata, y= metadata, by = "Sample", all.x=TRUE)
+# reset the rownames to previous value, as there're lost with merge
+row.names(coldata) <- names
+# assign new coldata back to sce 
 colData(sce) <- coldata
 # The chip is detected as an integer instead of a character
 sce$chip <- as.character(sce$chip)
