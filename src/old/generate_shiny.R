@@ -9,6 +9,8 @@ sce <- readRDS(here("processed", age, "sce_anno.RDS"))
 #[provisional until I correct all the objects with the import.r modification]
  barcodes_mod <- paste0("1_", sce$Barcode)
  colnames(sce)<- make.unique(barcodes_mod)
+ reducedDim(sce, "PCA_all") <- NULL
+ reducedDim(sce, "PCA_coldata") <- NULL
 # # test with seurat
  #seu <- as.Seurat(sce)
 
