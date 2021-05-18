@@ -1,7 +1,7 @@
 library(SingleCellExperiment)
 library(ShinyCell)
 library(here)
-library(DropletUtils)
+library(Seurat)
 
 age <- "old" 
 
@@ -12,10 +12,10 @@ sce <- readRDS(here("processed", age, "sce_anno.RDS"))
  reducedDim(sce, "PCA_all") <- NULL
  reducedDim(sce, "PCA_coldata") <- NULL
 # # test with seurat
- #seu <- as.Seurat(sce)
+ seu <- as.Seurat(sce)
 
 
-conf <- createConfig(sce)
+conf <- createConfig(seu)
 #Delete some unnecessary metadata
 conf <- delMeta(conf, meta.to.del = c( "subsets_mt_sum", "subsets_mt_detected",
                        "outlier", "ratio_detected_sum", "outlier_ratio",
@@ -27,5 +27,6 @@ conf <- modMetaName(conf,
                     new.name = c("umi counts", "detected genes", "% mt genes", "cell type"))
 # 
 
-makeShinyApp(sce, conf, gene.mapping = TRUE, shiny.title = "ShinyCell app")
+makeShinyApp(seu, conf, gene.mapping = TRUE, shiny.title = "ShinyCell app")
+
 
