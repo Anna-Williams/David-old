@@ -1,21 +1,18 @@
 library(SingleCellExperiment)
 library(ShinyCell)
 library(here)
-library(Seurat)
 
 age <- "old" 
 
 sce <- readRDS(here("processed", age, "sce_anno.RDS"))
 #[provisional until I correct all the objects with the import.r modification]
  barcodes_mod <- paste0("1_", sce$Barcode)
- colnames(sce)<- make.unique(barcodes_mod)
+ #colnames(sce)<- make.unique(barcodes_mod)
  reducedDim(sce, "PCA_all") <- NULL
  reducedDim(sce, "PCA_coldata") <- NULL
-# # test with seurat
- seu <- as.Seurat(sce)
 
 
-conf <- createConfig(seu)
+conf <- createConfig(sce)
 #Delete some unnecessary metadata
 conf <- delMeta(conf, meta.to.del = c( "subsets_mt_sum", "subsets_mt_detected",
                        "outlier", "ratio_detected_sum", "outlier_ratio",
@@ -27,6 +24,6 @@ conf <- modMetaName(conf,
                     new.name = c("umi counts", "detected genes", "% mt genes", "cell type"))
 # 
 
-makeShinyApp(seu, conf, gene.mapping = TRUE, shiny.title = "ShinyCell app")
+makeShinyApp(sce, conf, gene.mapping = TRUE, shiny.title = "ShinyCell app")
 
 
