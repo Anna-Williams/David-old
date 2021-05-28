@@ -20,10 +20,10 @@ age <- "old"
 ```
 
 ```{r import}
-if (!file.exists(here("processed", age, "sce_anno_01.RDS"))) {
+if (!file.exists(here("processed", age, "sce_anno.RDS"))) {
   sce <- readRDS(here("processed", age, "sce_clusters.RDS"))
 }else{
-  sce <- readRDS(here("processed", age, "sce_anno_01.RDS"))
+  sce <- readRDS(here("processed", age, "sce_anno.RDS"))
 }
 ```
 

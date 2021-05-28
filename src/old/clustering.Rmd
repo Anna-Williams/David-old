@@ -42,7 +42,7 @@ ks <- c(5, 10, 20, 30, 40, 50, 60)
 names <- paste0("cluster_k", as.character(ks))
 
 #only run if first time
-if(!file.exists(here("processed", age, "sce_clusters.RDS"))){
+if(!file.exists(here("processed", age, "clusters_SNN_k5-k60.RDS"))){
   # Compute all the cluster resolutions
   #  and save in a list with an appropriate name for later use
   cluster_list <- 
@@ -54,7 +54,7 @@ if(!file.exists(here("processed", age, "sce_clusters.RDS"))){
     USE.NAMES = TRUE,
     SIMPLIFY = FALSE
     )
-    saveRDS(cluster_list, here("processed", age, "clusters_SNN_k5-k60"))
+    saveRDS(cluster_list, here("processed", age, "clusters_SNN_k5-k60.RDS"))
   
  # Use the list to store the info in the sce and plot result
  idx <- c(1:length(names))
