@@ -1,0 +1,230 @@
+---
+title: "Cluster quality control"
+author: "Nadine Bestard"
+date: "28/05/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## set up
+
+```{r set-up, message=FALSE, warning=FALSE}
+library(SingleCellExperiment)
+library(here) # reproducible paths
+library(scater) # plot reduced dims
+library(dplyr) # df filtering
+
+```
+
+```{r age}
+age <- "old"
+```
+
+As in [publication] we will perform a cluster QC to remove clusters of poorer quality. This will be assessed by the number of UMI counts, the mitochondrial percentage and the number of mice that contribute to each cluster. To do so we use a small cluster resolution, 5
+
+### Number of molecules per cluster
+
+```{r load}
+sce <- readRDS(here("processed", age, "sce_clusters.RDS"))
+```
+
+```{r}
+plotTSNE(sce, colour_by = "total") + 
+  ggtitle("Total number of umi counts per cell")
+plotTSNE(sce, colour_by = "detected") +
+  ggtitle("Detected number of genes per cell")
+```
+
+Lower values of umi counts and detected genes can be associated to lower quality cells. Cells can also have lower expressed genes due to their biological state or celltype.
+
+
+```{r}
+pct_cells<- 50
+min_umi  <- 3000
+```
+
+
+Select clusters with `r pct_cells` % cells having less than `r min_umi`umi counts.
+
+```{r}
+umi_df <- as.data.frame(cbind(sce$total, sce$cluster_k5))
+colnames(umi_df) <- c("umi", "cluster_k5")
+
+# caculate the percentatges of cells that are "low umi"
+umi_df <- 
+  umi_df %>% 
+  mutate(low_umi = umi < min_umi) %>% 
+  group_by(cluster_k5) %>% 
+  summarise(n_low_umi = sum(low_umi), n_cells = n()) %>%
+  mutate(pct_cell_low_umi = (n_low_umi/n_cells)*100) 
+umi_df %>% arrange(desc(pct_cell_low_umi))
+
+# Filter the clusters that have a high proportion of "low umi"
+low_umi_clusters <- 
+  umi_df %>% 
+  filter(pct_cell_low_umi > pct_cells) %>% 
+  .$cluster_k5
+```
+The clusters flagged are `r low_umi_clusters`
+
+### Mithocondrial genes
+
+High mithocondrial genes is associated with stressed, lower quality, cells.
+
+```{r}
+plotTSNE(sce, colour_by = "subsets_mt_percent") + 
+  ggtitle("Percentatge mithocondrial genes")
+```
+
+```{r}
+pct_cells<- 50
+pct_mt  <- 10
+```
+
+
+Select clusters with `r pct_cells` % cells having more than `r pct_mt`% mithocondrial genes.
+
+```{r}
+mt_df <- as.data.frame(cbind(sce$subsets_mt_percent, sce$cluster_k5))
+colnames(mt_df) <- c("subsets_mt_percent", "cluster_k5")
+
+mt_df <- 
+  mt_df %>% 
+  mutate(high_pct = subsets_mt_percent > pct_mt) %>% 
+  group_by(cluster_k5) %>% 
+  summarise(n_high_mt = sum(high_pct), n_cells = n()) %>% 
+  mutate(pct_cell_high_mt = (n_high_mt/n_cells)*100)
+mt_df %>% arrange(desc(pct_cell_high_mt))
+
+high_mt_clusters <- 
+  mt_df %>% 
+  filter(pct_cell_high_mt > pct_cells) %>% 
+  .$cluster_k5
+
+```
+
+The clusters flagged are `r high_mt_clusters`.
+
+### Number of mice per cluster
+
+How many mice contribute to each cluster?
+
+```{r mice-per-cluster}
+# count how many cells from each gnt group  there are per cluster
+sum_per_gnt_cluster <- table(sce$genotype, sce$cluster_k5 )
+# for each cluster count how many cells are from each mice, dividing by KO and WT mice
+sum_per_mice_cluster <- table(sce$mouse, sce$genotype, sce$cluster_k5 )
+# For each cluster sum of mice that do have cells on that cluster
+colSums(sum_per_mice_cluster > 0)
+
+# create a summary 
+summary <- as.data.frame(rbind(colSums(sum_per_mice_cluster > 0), sum_per_gnt_cluster, colSums(sum_per_gnt_cluster)))
+row.names(summary) <- c("KO mice", "WT mice", "KO cells", "WT cells", "total cells")
+summary
+```
+
+Except from the obvious microglia clusters, where the numbers are very low or even absent in the fire mice nothing stands out. 
+
+### Control vs fire mice
+
+We want to make sure that the differences in the quality are not due to the fact the mice are KO before deleting the clusters
+
+```{r fig.width=10, message=FALSE}
+# divide the two objects
+sce_ko <- sce[,sce$genotype == "KO"]
+sce_ctr <- sce[,sce$genotype == "WT"]
+# plot them side by side
+gridExtra::grid.arrange(
+plotTSNE(sce_ko, colour_by = "cluster_k5", point_size=0.5,
+         point_alpha = 0.3, text_by = "cluster_k5", text_size = 3) +
+  scale_color_hue() +
+  ggtitle("fire mice"),
+plotTSNE(sce_ctr, colour_by = "cluster_k5", point_size=0.5,
+         point_alpha = 0.3, text_by = "cluster_k5", text_size = 3) +
+  scale_color_hue() +
+  ggtitle("control"), 
+ncol = 2
+)
+```
+
+#### Proportion KO-WT
+
+Visualise the proportions in a table
+```{r}
+prop_per_gnt <- round(prop.table(sum_per_gnt_cluster, margin = 2 )*100, 2)
+
+prop_per_gnt<- as.data.frame(prop_per_gnt)
+colnames(prop_per_gnt) <- c("Genotype", "cluster", "Proportion")
+
+prop_per_gnt %>% 
+  arrange(desc(Proportion))
+
+```
+
+
+visualise in a plot
+```{r plot}
+ggplot(data = prop_per_gnt, aes(x = cluster, y = Proportion, fill = Genotype)) +
+  geom_bar(position = "fill", stat = "identity") + theme_classic() 
+
+```
+
+
+```{r}
+ko_wt_pct <- 60
+```
+
+We consider that if the difference between the two groups is greater than 
+`r ko_wt_pct` the cluster might be different due to a biological condition
+and it is better to not remove them for now even if they have high mithocondrial
+genes or low umi counts. 
+
+```{r}
+difference_KO_WT <-
+  prop_per_gnt %>% 
+  arrange(desc(Proportion)) %>% 
+# the microglia clusters will be the top differences, but this is not 
+    # something we are specially interested
+  filter(!(cluster %in% c(21, 24, 1, 16))) %>% 
+    filter(Genotype == "KO") %>% 
+    # select the "interesting" clusters
+  filter(Proportion > ko_wt_pct ) %>% 
+  .$cluster
+```
+
+### Cluster QC
+
+We then filter out the clusters highlighted as low umi, or high mt but 
+do not have a big difference between control and treatment. 
+
+```{r}
+sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters) &
+                !(sce$cluster_k5 %in% difference_KO_WT)
+plotTSNE(sce, colour_by = "filter_out", point_size=0.5,
+         point_alpha = 0.3, text_by = "cluster_k5", text_size = 3) 
+filter_out <- sum(sce$filter_out)
+
+```
+
+There are `r filter_out` cells filtered out
+
+## Session Info
+
+<details>
+
+<summary>
+
+Click to expand
+
+</summary>
+
+```{r session-info}
+sessionInfo()
+```
+
+</details>

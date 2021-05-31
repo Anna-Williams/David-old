@@ -8,12 +8,12 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ## set up
 
-```{r set-up}
+```{r set-up, message=FALSE, warning=FALSE}
 library(SingleCellExperiment)
 library(here) # reproducible paths
 library(scater) # plot reduced dims
@@ -134,7 +134,7 @@ Except from the obvious microglia clusters, where the numbers are very low or ev
 
 We want to make sure that the differences in the quality are not due to the fact the mice are KO before deleting the clusters
 
-```{r fig.width=10}
+```{r fig.width=10, message=FALSE}
 # divide the two objects
 sce_ko <- sce[,sce$genotype == "KO"]
 sce_ctr <- sce[,sce$genotype == "WT"]
@@ -191,9 +191,7 @@ difference_KO_WT <-
 # the microglia clusters will be the top differences, but this is not 
     # something we are specially interested
   filter(!(cluster %in% c(21, 24, 1, 16))) %>% 
-      # we can take the top 20, as the next 20 is duplicated info
-    # all clusters are duplicated ( ex: 40 % in WT, 60 % KO) 
-  slice_head(n = 20) %>% 
+  filter(Genotype == "KO") %>% 
     # select the "interesting" clusters
   filter(Proportion > ko_wt_pct ) %>% 
   .$cluster
@@ -208,8 +206,25 @@ do not have a big difference between control and treatment.
 sce$filter_out <- sce$cluster_k60 %in% c( high_mt_clusters, low_umi_clusters) &
                 !(sce$cluster_k60 %in% difference_KO_WT)
 plotTSNE(sce, colour_by = "filter_out", point_size=0.5,
-         point_alpha = 0.3, text_by = "cluster_k60", text_size = 3) +
-  scale_color_hue()
+         point_alpha = 0.3, text_by = "cluster_k60", text_size = 3) 
 
+filter_out <- sum(sce$filter_out)
 ```
 
+There are `r filter_out` cells filtered out. 
+
+## Session Info
+
+<details>
+
+<summary>
+
+Click to expand
+
+</summary>
+
+```{r session-info}
+sessionInfo()
+```
+
+</details>
