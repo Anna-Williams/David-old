@@ -191,18 +191,33 @@ ggplot(data = prop_per_gnt_no_mc, aes(x = cluster, y = Proportion, fill = Genoty
 ```
 
 ```{r}
+ko_wt_pct <- 60
+```
+
+We consider that if the difference between the two groups is greater than 
+`r ko_wt_pct` the cluster might be different due to a biological condition
+and it is better to not remove them for now even if they have high mithocondrial
+genes or low umi counts. 
+
+```{r}
 prop_per_gnt_no_mc %>% 
   arrange(desc(Proportion)) %>% 
   # here all clusters are duplicated ( ex: 40 % in WT, 60 % KO)
   slice_head(n = 20)# %>% 
   #filter(cluster %in% c(high_mt_clusters, low_umi_clusters))
   
+difference_KO_WT <-
   prop_per_gnt %>% 
   arrange(desc(Proportion)) %>% 
-  # here all clusters are duplicated ( ex: 40 % in WT, 60 % KO) 
+# the microglia clusters will be the top differences, but this is not 
+    # something we are specially interested
   filter(!(cluster %in% c(21, 24, 1, 16))) %>% 
-  slice_head(n = 20)# %>% 
- # filter(cluster %in% c(high_mt_clusters, low_umi_clusters))
+      # we can take the top 20, as the next 20 is duplicated info
+    # all clusters are duplicated ( ex: 40 % in WT, 60 % KO) 
+  slice_head(n = 20) %>% 
+    # select the "interesting" clusters
+  filter(Proportion > ko_wt_pct ) %>% 
+  .$cluster
 ```
 
 ### Cluster QC
