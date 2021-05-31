@@ -44,7 +44,7 @@ Lower values of umi counts and detected genes can be associated to lower quality
 
 
 ```{r}
-pct_cells<- 60
+pct_cells<- 50
 min_umi  <- 3000
 ```
 
@@ -82,7 +82,7 @@ plotTSNE(sce, colour_by = "subsets_mt_percent") +
 ```
 
 ```{r}
-pct_cells<- 60
+pct_cells<- 50
 pct_mt  <- 10
 ```
 
