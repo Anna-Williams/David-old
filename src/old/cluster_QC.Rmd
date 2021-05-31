@@ -144,32 +144,15 @@ ncol = 2
 
 #### Proportion KO-WT
 
-In order to calculate the proportion we do not take in consideration the microglia, as this is only present in the control and it would underestimate all the KO proportions. 
-
-This is how the proportion look like if we do not delete the 
-microglia, no normalise per cluster:
 ```{r}
 prop_per_gnt <- round(prop.table(sum_per_gnt_cluster, margin = 2 )*100, 2)
 prop_per_gnt
 # think about that
 rowSums(prop_per_gnt)
+
+
 ```
 
-```{r}
-sce_no_mc <- sce[,!(sce$cluster_k60 %in% c(21, 24, 1, 16))]
-
-# count how many cells from each gnt group  there are per cluster
-sum_per_gnt_cluster_no_mc <- table(sce_no_mc$genotype, sce_no_mc$cluster_k60 )
-# normalise per cluster, looking how the KO and WT are distributed
-# across the clusters, to give to both groups the same weight
-prop_per_cluster_no_mc <- prop.table(sum_per_gnt_cluster_no_mc, margin = 1)
-prop_per_gnt_no_mc <- prop.table(prop_per_cluster_no_mc, margin = 2)
-round(prop_per_gnt_no_mc*100, 2)
-# think about that
-rowSums(prop_per_gnt)
-```
-
-Removing the microglia the KO % values are slightly larger. 
 
 visualise in a plot
 ```{r plot}
@@ -181,14 +164,6 @@ ggplot(data = prop_per_gnt, aes(x = cluster, y = Proportion, fill = Genotype)) +
 
 ```
 
-```{r}
-prop_per_gnt_no_mc<- as.data.frame(prop_per_gnt_no_mc)
-colnames(prop_per_gnt_no_mc) <- c("Genotype", "cluster", "Proportion")
-
-ggplot(data = prop_per_gnt_no_mc, aes(x = cluster, y = Proportion, fill = Genotype)) +
-  geom_bar(position = "fill", stat = "identity") + theme_classic() 
-
-```
 
 ```{r}
 ko_wt_pct <- 60
