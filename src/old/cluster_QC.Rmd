@@ -144,21 +144,21 @@ ncol = 2
 
 #### Proportion KO-WT
 
+Visualise the proportions in a table
 ```{r}
 prop_per_gnt <- round(prop.table(sum_per_gnt_cluster, margin = 2 )*100, 2)
-prop_per_gnt
-# think about that
-rowSums(prop_per_gnt)
 
+prop_per_gnt<- as.data.frame(prop_per_gnt)
+colnames(prop_per_gnt) <- c("Genotype", "cluster", "Proportion")
+
+prop_per_gnt %>% 
+  arrange(desc(Proportion))
 
 ```
 
 
 visualise in a plot
 ```{r plot}
-prop_per_gnt<- as.data.frame(prop_per_gnt)
-colnames(prop_per_gnt) <- c("Genotype", "cluster", "Proportion")
-
 ggplot(data = prop_per_gnt, aes(x = cluster, y = Proportion, fill = Genotype)) +
   geom_bar(position = "fill", stat = "identity") + theme_classic() 
 
@@ -196,4 +196,6 @@ difference_KO_WT <-
 ```
 
 ### Cluster QC
+
+
 
