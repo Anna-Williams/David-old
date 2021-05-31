@@ -175,12 +175,6 @@ and it is better to not remove them for now even if they have high mithocondrial
 genes or low umi counts. 
 
 ```{r}
-prop_per_gnt_no_mc %>% 
-  arrange(desc(Proportion)) %>% 
-  # here all clusters are duplicated ( ex: 40 % in WT, 60 % KO)
-  slice_head(n = 20)# %>% 
-  #filter(cluster %in% c(high_mt_clusters, low_umi_clusters))
-  
 difference_KO_WT <-
   prop_per_gnt %>% 
   arrange(desc(Proportion)) %>% 
