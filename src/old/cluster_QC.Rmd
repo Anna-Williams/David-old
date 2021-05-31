@@ -42,6 +42,30 @@ plotTSNE(sce, colour_by = "detected") +
 
 Lower values of umi counts and detected genes can be associated to lower quality cells. Cells can also have lower expressed genes due to their biological state or celltype.
 
+
+```{r}
+pct_cells<- 60
+min_umi  <- 3000
+```
+
+
+Select clusters with `r pct_cells` % cells having less than `r min_umi`umi counts.
+
+```{r}
+umi_df <- as.data.frame(cbind(sce$total, sce$cluster_k60))
+colnames(umi_df) <- c("umi", "cluster_k60")
+
+low_umi_clusters <- 
+  umi_df %>% 
+  mutate(low_umi = umi < min_umi) %>% 
+  group_by(cluster_k60) %>% 
+  summarise(n_low_umi = sum(low_umi), n_cells = n()) %>%
+  mutate(pct_cell_low_umi = (n_low_umi/n_cells)*100) %>% 
+  filter(pct_cell_low_umi > pct_cells) %>% 
+  .$cluster_k60
+
+```
+
 ### Mithocondrial genes
 
 High mithocondrial genes is associated with stressed, lower quality, cells.
@@ -52,21 +76,26 @@ plotTSNE(sce, colour_by = "subsets_mt_percent") +
 ```
 
 ```{r}
-pct_cells<- 50
-pct_mt  <- 20
+pct_cells<- 60
+pct_mt  <- 10
 ```
 
 
 Select clusters with `r pct_cells` % cells having more than `r pct_mt`% mithocondrial genes.
 
 ```{r}
-sce_mt_df <- as.data.frame(cbind(sce$subsets_mt_percent, sce$cluster_k60))
-colnames(sce_mt_df) <- c("subsets_mt_percent", "cluster_k60")
-sce_mt_df %>% 
+mt_df <- as.data.frame(cbind(sce$subsets_mt_percent, sce$cluster_k60))
+colnames(mt_df) <- c("subsets_mt_percent", "cluster_k60")
+
+high_mt_clusters <- 
+  mt_df %>% 
+  mutate(high_pct = subsets_mt_percent > pct_mt) %>% 
   group_by(cluster_k60) %>% 
-  summarise(mean(subsets_mt_percent))
-head(sce_mt_df)
-#sce$mt_cluster <- sce[sce$subsets_mt_percent]
+  summarise(n_high_mt = sum(high_pct), n_cells = n()) %>% 
+  mutate(pct_cell_high_mt = (n_high_mt/n_cells)*100) %>% 
+  filter(pct_cell_high_mt > pct_cells) %>% 
+  .$cluster_k60
+
 ```
 
 
@@ -160,5 +189,21 @@ ggplot(data = prop_per_gnt_no_mc, aes(x = cluster, y = Proportion, fill = Genoty
   geom_bar(position = "fill", stat = "identity") + theme_classic() 
 
 ```
+
+```{r}
+prop_per_gnt_no_mc %>% 
+  arrange(desc(Proportion)) %>% 
+  # here all clusters are duplicated ( ex: 40 % in WT, 60 % KO)
+  slice_head(n = 20)# %>% 
+  #filter(cluster %in% c(high_mt_clusters, low_umi_clusters))
+  
+  prop_per_gnt %>% 
+  arrange(desc(Proportion)) %>% 
+  # here all clusters are duplicated ( ex: 40 % in WT, 60 % KO) 
+  filter(!(cluster %in% c(21, 24, 1, 16))) %>% 
+  slice_head(n = 20)# %>% 
+ # filter(cluster %in% c(high_mt_clusters, low_umi_clusters))
+```
+
 ### Cluster QC
 
