@@ -1,0 +1,164 @@
+---
+title: "Cluster quality control"
+author: "Nadine Bestard"
+date: "28/05/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## set up
+
+```{r set-up}
+library(SingleCellExperiment)
+library(here) # reproducible paths
+library(scater) # plot reduced dims
+library(dplyr) # df filtering
+
+```
+
+```{r age}
+age <- "old"
+```
+
+As in [publication] we will perform a cluster QC to remove clusters of poorer quality. This will be assessed by the number of UMI counts, the mitochondrial percentage and the number of mice that contribute to each cluster. To do so we use a small cluster resolution, 5
+
+### Number of molecules per cluster
+
+```{r load}
+sce <- readRDS(here("processed", age, "sce_clusters.RDS"))
+```
+
+```{r}
+plotTSNE(sce, colour_by = "total") + 
+  ggtitle("Total number of umi counts per cell")
+plotTSNE(sce, colour_by = "detected") +
+  ggtitle("Detected number of genes per cell")
+```
+
+Lower values of umi counts and detected genes can be associated to lower quality cells. Cells can also have lower expressed genes due to their biological state or celltype.
+
+### Mithocondrial genes
+
+High mithocondrial genes is associated with stressed, lower quality, cells.
+
+```{r}
+plotTSNE(sce, colour_by = "subsets_mt_percent") + 
+  ggtitle("Percentatge mithocondrial genes")
+```
+
+```{r}
+pct_cells<- 50
+pct_mt  <- 20
+```
+
+
+Select clusters with `r pct_cells` % cells having more than `r pct_mt`% mithocondrial genes.
+
+```{r}
+sce_mt_df <- as.data.frame(cbind(sce$subsets_mt_percent, sce$cluster_k60))
+colnames(sce_mt_df) <- c("subsets_mt_percent", "cluster_k60")
+sce_mt_df %>% 
+  group_by(cluster_k60) %>% 
+  summarise(mean(subsets_mt_percent))
+head(sce_mt_df)
+#sce$mt_cluster <- sce[sce$subsets_mt_percent]
+```
+
+
+
+### Number of mice per cluster
+
+How many mice contribute to each cluster?
+
+```{r mice-per-cluster}
+# count how many cells from each gnt group  there are per cluster
+sum_per_gnt_cluster <- table(sce$genotype, sce$cluster_k60 )
+# for each cluster count how many cells are from each mice, dividing by KO and WT mice
+sum_per_mice_cluster <- table(sce$mouse, sce$genotype, sce$cluster_k60 )
+# For each cluster sum of mice that do have cells on that cluster
+colSums(sum_per_mice_cluster > 0)
+
+# create a summary 
+summary <- as.data.frame(rbind(colSums(sum_per_mice_cluster > 0), sum_per_gnt_cluster, colSums(sum_per_gnt_cluster)))
+row.names(summary) <- c("KO mice", "WT mice", "KO cells", "WT cells", "total cells")
+summary
+```
+
+Except from the obvious microglia clusters, where the numbers are very low or even absent in the fire mice nothing stands out. 
+
+### Control vs fire mice
+
+We want to make sure that the differences in the quality are not due to the fact the mice are KO before deleting the clusters
+
+```{r fig.width=10}
+# divide the two objects
+sce_ko <- sce[,sce$genotype == "KO"]
+sce_ctr <- sce[,sce$genotype == "WT"]
+# plot them side by side
+gridExtra::grid.arrange(
+plotTSNE(sce_ko, colour_by = "cluster_k60", point_size=0.5,
+         point_alpha = 0.3, text_by = "cluster_k60", text_size = 3) +
+  scale_color_hue() +
+  ggtitle("fire mice"),
+plotTSNE(sce_ctr, colour_by = "cluster_k60", point_size=0.5,
+         point_alpha = 0.3, text_by = "cluster_k60", text_size = 3) +
+  scale_color_hue() +
+  ggtitle("control"), 
+ncol = 2
+)
+```
+
+#### Proportion KO-WT
+
+In order to calculate the proportion we do not take in consideration the microglia, as this is only present in the control and it would underestimate all the KO proportions. 
+
+This is how the proportion look like if we do not delete the 
+microglia, no normalise per cluster:
+```{r}
+prop_per_gnt <- round(prop.table(sum_per_gnt_cluster, margin = 2 )*100, 2)
+prop_per_gnt
+# think about that
+rowSums(prop_per_gnt)
+```
+
+```{r}
+sce_no_mc <- sce[,!(sce$cluster_k60 %in% c(21, 24, 1, 16))]
+
+# count how many cells from each gnt group  there are per cluster
+sum_per_gnt_cluster_no_mc <- table(sce_no_mc$genotype, sce_no_mc$cluster_k60 )
+# normalise per cluster, looking how the KO and WT are distributed
+# across the clusters, to give to both groups the same weight
+prop_per_cluster_no_mc <- prop.table(sum_per_gnt_cluster_no_mc, margin = 1)
+prop_per_gnt_no_mc <- prop.table(prop_per_cluster_no_mc, margin = 2)
+round(prop_per_gnt_no_mc*100, 2)
+# think about that
+rowSums(prop_per_gnt)
+```
+
+Removing the microglia the KO % values are slightly larger. 
+
+visualise in a plot
+```{r plot}
+prop_per_gnt<- as.data.frame(prop_per_gnt)
+colnames(prop_per_gnt) <- c("Genotype", "cluster", "Proportion")
+
+ggplot(data = prop_per_gnt, aes(x = cluster, y = Proportion, fill = Genotype)) +
+  geom_bar(position = "fill", stat = "identity") + theme_classic() 
+
+```
+
+```{r}
+prop_per_gnt_no_mc<- as.data.frame(prop_per_gnt_no_mc)
+colnames(prop_per_gnt_no_mc) <- c("Genotype", "cluster", "Proportion")
+
+ggplot(data = prop_per_gnt_no_mc, aes(x = cluster, y = Proportion, fill = Genotype)) +
+  geom_bar(position = "fill", stat = "identity") + theme_classic() 
+
+```
+### Cluster QC
+
