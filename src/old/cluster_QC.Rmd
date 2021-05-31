@@ -55,16 +55,22 @@ Select clusters with `r pct_cells` % cells having less than `r min_umi`umi count
 umi_df <- as.data.frame(cbind(sce$total, sce$cluster_k60))
 colnames(umi_df) <- c("umi", "cluster_k60")
 
-low_umi_clusters <- 
+# caculate the percentatges of cells that are "low umi"
+umi_df <- 
   umi_df %>% 
   mutate(low_umi = umi < min_umi) %>% 
   group_by(cluster_k60) %>% 
   summarise(n_low_umi = sum(low_umi), n_cells = n()) %>%
-  mutate(pct_cell_low_umi = (n_low_umi/n_cells)*100) %>% 
+  mutate(pct_cell_low_umi = (n_low_umi/n_cells)*100) 
+umi_df %>% arrange(desc(pct_cell_low_umi))
+
+# Filter the clusters that have a high proportion of "low umi"
+low_umi_clusters <- 
+  umi_df %>% 
   filter(pct_cell_low_umi > pct_cells) %>% 
   .$cluster_k60
-
 ```
+The clusters flagged are `r low_umi_clusters`
 
 ### Mithocondrial genes
 
@@ -87,18 +93,22 @@ Select clusters with `r pct_cells` % cells having more than `r pct_mt`% mithocon
 mt_df <- as.data.frame(cbind(sce$subsets_mt_percent, sce$cluster_k60))
 colnames(mt_df) <- c("subsets_mt_percent", "cluster_k60")
 
-high_mt_clusters <- 
+mt_df <- 
   mt_df %>% 
   mutate(high_pct = subsets_mt_percent > pct_mt) %>% 
   group_by(cluster_k60) %>% 
   summarise(n_high_mt = sum(high_pct), n_cells = n()) %>% 
-  mutate(pct_cell_high_mt = (n_high_mt/n_cells)*100) %>% 
+  mutate(pct_cell_high_mt = (n_high_mt/n_cells)*100)
+mt_df %>% arrange(desc(pct_cell_high_mt))
+
+high_mt_clusters <- 
+  mt_df %>% 
   filter(pct_cell_high_mt > pct_cells) %>% 
   .$cluster_k60
 
 ```
 
-
+The clusters flagged are `r high_mt_clusters`.
 
 ### Number of mice per cluster
 
@@ -191,5 +201,15 @@ difference_KO_WT <-
 
 ### Cluster QC
 
+We then filter out the clusters highlighted as low umi, or high mt but 
+do not have a big difference between control and treatment. 
 
+```{r}
+sce$filter_out <- sce$cluster_k60 %in% c( high_mt_clusters, low_umi_clusters) &
+                !(sce$cluster_k60 %in% difference_KO_WT)
+plotTSNE(sce, colour_by = "filter_out", point_size=0.5,
+         point_alpha = 0.3, text_by = "cluster_k60", text_size = 3) +
+  scale_color_hue()
+
+```
 
