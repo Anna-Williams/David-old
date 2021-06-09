@@ -172,15 +172,29 @@ ncol = 2
 
 #### Proportion KO-WT
 
-Visualise the proportions in a table
+In order to visualise the proportions from KO and WT for each cluster, we
+do not take in consideration the microglia clusters, as these are only present in the control, and we normalise per number
+of cells per cluster.
 
 ```{r}
-prop_per_gnt <- round(prop.table(sum_per_gnt_cluster, margin = 2 )*100, 2)
+# delete the microglia
+sce_no_mc <- sce[,!(sce$cluster_k5 %in% c(5, 41, 11, 30, 9, 53, 11, 9, 54))]
 
-prop_per_gnt<- as.data.frame(prop_per_gnt)
-colnames(prop_per_gnt) <- c("Genotype", "cluster", "Proportion")
+# count how many cells from each gnt group  there are per cluster
+sum_per_gnt_cluster_no_mc <- table(sce_no_mc$genotype, sce_no_mc$cluster_k5 )
 
-prop_per_gnt %>% 
+# normalise per cluster, looking how the KO and WT are distributed
+# across the clusters, to give to both groups the same weight
+prop_per_cluster_no_mc <- prop.table(sum_per_gnt_cluster_no_mc, margin = 1)
+
+# calculate the proportions for each cluster
+prop_per_gnt_no_mc <- round(prop.table(prop_per_cluster_no_mc , margin = 2 )*100, 2)
+
+# Display
+prop_per_gnt_no_mc<- as.data.frame(prop_per_gnt_no_mc)
+colnames(prop_per_gnt_no_mc) <- c("Genotype", "cluster", "Proportion")
+
+prop_per_gnt_no_mc %>% 
   filter(Genotype == "KO") %>% 
   arrange(desc(Proportion))
 
@@ -190,7 +204,7 @@ visualise in a plot
 
 
 ```{r plot}
-ggplot(data = prop_per_gnt, aes(x = cluster, y = Proportion, fill = Genotype)) +
+ggplot(data = prop_per_gnt_no_mc, aes(x = cluster, y = Proportion, fill = Genotype)) +
   geom_bar(position = "fill", stat = "identity") + theme_classic() 
 
 ```
@@ -212,7 +226,7 @@ difference_KO_WT <-
   .$cluster
 ```
 
-The clusters with more than `r ko_pct` % cells from the KO animals are:
+The clusters with more than `r ko_pct` % cells from the KO animals that were previously flagged as lower quality are:
 
 ```{r}
 gt_ko_pct <- unique(sce$cluster_k5[sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters) &
