@@ -242,12 +242,18 @@ We filter out the clusters highlighted as:
 -   high mt : majority of cells having more than 10 % mitochondrial genes
 
 
-```{r}
+```{r filterout}
 sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters) &
                 !(sce$cluster_k5 %in% neuro)
+filter_out <- sum(sce$filter_out)
 plotTSNE(sce, colour_by = "filter_out", point_size=0.5,
          point_alpha = 0.3, text_by = "cluster_k5", text_size = 3) 
-filter_out <- sum(sce$filter_out)
+
+if (!file.exists(here("processed", age, "sce_clusterQC.RDS"))){
+ sce <- sce[sce$filter_out == FALSE, ]
+ saveRDS(sce, here("processed", age, "sce_clusterQC.RDS"))
+}
+
 
 ```
 
