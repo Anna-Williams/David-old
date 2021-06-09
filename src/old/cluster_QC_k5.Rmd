@@ -126,6 +126,7 @@ high_mt_clusters <-
 
 The clusters flagged are `r high_mt_clusters`.
 
+
 ### Number of mice per cluster
 
 How many mice contribute to each cluster?
@@ -149,8 +150,7 @@ even absent in the fire mice nothing stands out.
 
 ### Control vs fire mice
 
-We want to make sure that the differences in the quality are not due to the fact
-the mice are KO before deleting the clusters
+We want to have a closer look at the clusters that do have a difference between the knockout and the wild type before deleting the clusters.
 
 ```{r fig.width=10, message=FALSE}
 # divide the two objects
@@ -199,11 +199,6 @@ ggplot(data = prop_per_gnt, aes(x = cluster, y = Proportion, fill = Genotype)) +
 ko_pct <- 60
 ```
 
-We consider that if cluster are formed by more than `r ko_pct` % cells from the
-KO, the clustesr might be different due to the biological condition and it is
-better to not remove them for now even if they have high mitochondrial genes or
-low umi counts.
-
 ```{r}
 difference_KO_WT <-
   prop_per_gnt %>% 
@@ -217,35 +212,46 @@ difference_KO_WT <-
   .$cluster
 ```
 
-The "protected" clusters are
+The clusters with more than `r ko_pct` % cells from the KO animals are:
 
 ```{r}
-protected <- unique(sce$cluster_k5[sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters) &
+gt_ko_pct <- unique(sce$cluster_k5[sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters) &
     (sce$cluster_k5 %in% difference_KO_WT)])
 ```
 
-`r protected`
+`r gt_ko_pct`
+
+
+ 6 and 27 are very low quality non identified cells, most lickeley only clustering due to the quality and will be deleted. 
+ 
+ 37 is close to the big high mt. oligo cluster we are deleting. It does not have high mt but does have very low umi counts. This will also be deleted. 
+ 
+32 and 23 are two small neuronal clusters (part of cluster 15 at k60) (approx. 70% KO). The other small neuronal clusters around, 36 and 12, would be deleted with the chosen thresholds (approx. 55% KO). However as cluster 15 (at k60) is the only neuronal cluster this whole cluster will be kept even though it is borderline in terms of quality. More information supporting this choice can be found in the cluster_QC_k60 and the first annotation files.
+
+```{r}
+# the cluster 15 from k60 is formed by the clusters bellow at k5 (cluster tree in clustering_01)
+neuro <- c(12,32,23,35,36)
+```
 
 ### Cluster QC
 
 We filter out the clusters highlighted as:
 
--    low umi: majority of cells having less than 3000 umi counts
+-   low umi: majority of cells having less than 3000 umi counts
 
 -   high mt : majority of cells having more than 10 % mitochondrial genes
 
--   Not mostly (more `r ko_pct`) % from KO cells
 
 ```{r}
 sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters) &
-                !(sce$cluster_k5 %in% difference_KO_WT)
+                !(sce$cluster_k5 %in% neuro)
 plotTSNE(sce, colour_by = "filter_out", point_size=0.5,
          point_alpha = 0.3, text_by = "cluster_k5", text_size = 3) 
 filter_out <- sum(sce$filter_out)
 
 ```
 
-There are `r filter_out` cells filtered out
+There are `r filter_out` cells filtered out.
 
 ## Session Info
 
