@@ -14,8 +14,12 @@ filtered matrices are in the "data" folder.
  
  - import.R imports the raw counts from 10x and the metadata into a sce object. 
  - The first cell and gene quality control is in QC.Rmd
+ - The normalisation by deconvolution is in normalise.Rmd
+ - Feature selection and dimensional reduction in feature_selection_dimred.Rmd
+ - Annotation in annotation.Rmd
+ - Cluster QC in clusterQC_k5.Rmd
  
  
 ## Docs
  The html documents generated with the source code and the plots are separated 
- in this folder.
+ in this folder. (no echo when knitting, to hide the code for a nicer view)
