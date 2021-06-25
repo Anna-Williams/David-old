@@ -11,7 +11,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 #### set-up
@@ -21,6 +21,8 @@ library(SingleCellExperiment)
 library(here) # reproducible paths
 library(scater) # plot reduced dims
 library(dplyr) # df filtering
+library(tibble)  # for `rownames_to_column`
+library(scDblFinder) # detect doublets
 
 ```
 
@@ -148,6 +150,56 @@ summary
 Except from the obvious microglia clusters, where the numbers are very low or
 even absent in the fire mice nothing stands out.
 
+### Clusters of doublet cells
+
+Detection of clusters formed by doublets/multiplets (i.e. multiple cells captured within the same droplet or reaction volume). The function test each cluster against the null hypothesis that it _does_ consist of doublets. The null is rejected if a cluster has many DE genes that lie outside the expression limits defined by the “source” clusters.
+
+```{r}
+if(!file.exists(here("outs",age,  "doublet_clusters_k5_res.csv"))){
+  res_dbl <- findDoubletClusters(sce, sce$cluster_k5)
+  res_dbl <- res_dbl %>% 
+    as.data.frame() %>% 
+    rownames_to_column("cluster")
+  write.csv(res_dbl, here("outs", age,  "doublet_clusters_k5_res.csv"))
+}else{
+  res_dbl <- read.csv(here("outs", age,  "doublet_clusters_k5_res.csv"), row.names = 1)
+}
+```
+
+Analyse the results, this includes filtering for the clusters where the null hypothesis (of being a doublet) was not rejected at a significance level of 5%, filter for the ones that are in average formed by cells with bigger library sizes than its source clusters ( the umi counts of a doublet is expected to be larger than for a single cell). Finally plot the clusters that were not already detected as poorer quality, along with the source clusters to have a closer look at these potential doublet cells. 
+
+```{r}
+# filter rows where the null hypothesis was not rejected
+dbl_exploratory <- res_dbl %>% 
+  filter(p.value > 0.05) %>% 
+# Filter the ones that were not already known as poorer quality
+  filter(!(cluster %in% c( high_mt_clusters, low_umi_clusters))) %>% 
+  # filter for a ratio of lib size lower than 1 ( the doublets should have a bigger lib.size)
+  filter(lib.size1 < 1 & lib.size2 < 1)
+
+
+#  see which ones there are and from which they come from 
+dbl_exploratory
+sce$dbl_exploratory <- ifelse(sce$cluster_k5 %in% dbl_exploratory$cluster, TRUE, FALSE)
+plotTSNE(sce[,sce$cluster_k5 %in% c(dbl_exploratory$cluster, dbl_exploratory$source1, dbl_exploratory$source2)], text_by = "cluster_k5", colour_by = "dbl_exploratory" )
+
+```
+
+
+
+Cluster 20 is detected as a doublet cluster between 45 and 24. The cluster 20 is clustered with 45 in the next resolution, therfore it might just be due to the close similarity between this two clusters. 
+The other 3 clusters are doublets of:
+9: Astrocytes and Microglia, 
+31: Endothelial cells and unknown
+53: Oligodendrocytes and microglia. 
+
+**TODO:** check with David 9 and 53 are doublets, and there is not known celltypes that could express combinations of these celltypes.
+
+```{r}
+doublets <- c(9, 31, 53)
+```
+
+
 ### Control vs fire mice
 
 We want to have a closer look at the clusters that do have a difference between the knockout and the wild type before deleting the clusters.
@@ -215,7 +267,7 @@ ko_pct <- 60
 
 ```{r}
 difference_KO_WT <-
-  prop_per_gnt %>% 
+  prop_per_gnt_no_mc %>% 
   arrange(desc(Proportion)) %>% 
 # the microglia clusters will be the top differences, but this is not 
     # something we are specially interested
@@ -236,7 +288,7 @@ gt_ko_pct <- unique(sce$cluster_k5[sce$cluster_k5 %in% c( high_mt_clusters, low_
 `r gt_ko_pct`
 
 
- 6 and 27 are very low quality non identified cells, most lickeley only clustering due to the quality and will be deleted. 
+ 6 and 27 are very low quality non identified cells, most likely only clustering due to the quality and will be deleted. 
  
  37 is close to the big high mt. oligo cluster we are deleting. It does not have high mt but does have very low umi counts. This will also be deleted. 
  
@@ -255,9 +307,11 @@ We filter out the clusters highlighted as:
 
 -   high mt : majority of cells having more than 10 % mitochondrial genes
 
+-   doublets: their expression profile lie between two other “source” clusters.
+**TODO:** check with David 9 and 53 are doublets, and there is not known celltypes that could express these combinations.
 
 ```{r filterout}
-sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters) &
+sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters, doublets) &
                 !(sce$cluster_k5 %in% neuro)
 filter_out <- sum(sce$filter_out)
 plotTSNE(sce, colour_by = "filter_out", point_size=0.5,
