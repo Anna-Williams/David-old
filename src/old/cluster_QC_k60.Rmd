@@ -11,27 +11,36 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## set up
+#### set-up
 
 ```{r set-up, message=FALSE, warning=FALSE}
 library(SingleCellExperiment)
 library(here) # reproducible paths
 library(scater) # plot reduced dims
 library(dplyr) # df filtering
-
+library(scDblFinder) # detect doublets
 ```
 
 ```{r age}
 age <- "old"
 ```
-
-As in [publication] we will perform a cluster QC to remove clusters of poorer quality. This will be assessed by the number of UMI counts, the mitochondrial percentage and the number of mice that contribute to each cluster. To do so we use a small cluster resolution, 5
-
-### Number of molecules per cluster
-
 ```{r load}
 sce <- readRDS(here("processed", age, "sce_clusters.RDS"))
 ```
+
+### Introduction
+
+As in [publication] we will perform a cluster QC to remove clusters of poorer quality. This will be assessed by the number of UMI counts, the mitochondrial percentage and the number of mice that contribute to each cluster. 
+we first realise this analysis with a broad cluster resolution, k60 
+
+```{r inital-clustering}
+plotTSNE(sce, colour_by = "cluster_k60", point_size=0.5,
+         point_alpha = 0.3, text_by = "cluster_k60", text_size = 3) +
+  scale_color_hue() 
+```
+
+
+### Number of molecules per cluster
 
 ```{r}
 plotTSNE(sce, colour_by = "total") + 
@@ -130,6 +139,30 @@ summary
 
 Except from the obvious microglia clusters, where the numbers are very low or even absent in the fire mice nothing stands out. 
 
+
+### Clusters of doublet cells
+
+Detection of clusters formed by doublets/multiplets (i.e. multiple cells captured within the same droplet or reaction volume). The function test each cluster against the null hypothesis that it _does_ consist of doublets. The null is rejected if a cluster has many DE genes that lie outside the expression limits defined by the “source” clusters.
+
+```{r}
+if(!file.exists(here("outs",age,  "doublet_clusters_k60_res.csv"))){
+  res_dbl <- findDoubletClusters(sce, sce$cluster_k60)
+  write.csv(res_dbl, here("outs", "doublet_clusters_k60_res.csv"))
+}else{
+  res_dbl <- read.csv(here("outs", age,  "doublet_clusters_k60_res.csv"))
+}
+```
+
+Analyse the results
+```{r}
+# filter the outlier values
+doublet <- rownames(res_dbl)[isOutlier(res_dbl$num.de, type="lower", log=TRUE)]
+```
+
+The cluster `r doublet` stands out, this clusters has already been flagged previously as lower quality. 
+
+
+
 ### Control vs fire mice
 
 We want to make sure that the differences in the quality are not due to the fact the mice are KO before deleting the clusters
@@ -176,11 +209,11 @@ ggplot(data = prop_per_gnt, aes(x = cluster, y = Proportion, fill = Genotype)) +
 
 
 ```{r}
-ko_wt_pct <- 60
+ko_pct <- 60
 ```
 
 We consider that if the difference between the two groups is greater than 
-`r ko_wt_pct` the cluster might be different due to a biological condition
+`r ko_pct` the cluster might be different due to a biological condition
 and it is better to not remove them for now even if they have high mithocondrial
 genes or low umi counts. 
 
@@ -193,14 +226,19 @@ difference_KO_WT <-
   filter(!(cluster %in% c(21, 24, 1, 16))) %>% 
   filter(Genotype == "KO") %>% 
     # select the "interesting" clusters
-  filter(Proportion > ko_wt_pct ) %>% 
+  filter(Proportion > ko_pct ) %>% 
   .$cluster
 ```
 
 ### Cluster QC
 
-We then filter out the clusters highlighted as low umi, or high mt but 
-do not have a big difference between control and treatment. 
+We filter out the clusters highlighted as:
+
+-    low umi: majority of cells having less than 3000 umi counts
+
+-   high mt : majority of cells having more than 10 % mitochondrial genes
+
+-   Not mostly (more `r ko_pct`) from KO cells
 
 ```{r}
 sce$filter_out <- sce$cluster_k60 %in% c( high_mt_clusters, low_umi_clusters) &
