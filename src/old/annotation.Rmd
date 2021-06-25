@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(here) #reproducible paths
 library(scater) #feature plots
 library(patchwork) # agregate plots
+library(scran) # for findmarkers
 ```
 
 ```{r age}
@@ -229,6 +230,39 @@ follows:
 ```{r}
 plotTSNE(sce, colour_by = "cluster_k60", text_by = "cluster_k60") + scale_color_hue()
 ```
+
+
+## Extra. identify cluster 10
+
+In order to help with the identification of cluster 10 we pull out the most expressed genes, 
+and the DE with the other clusters.
+
+```{r}
+# subset only the cluster of interest
+sce_10 <- sce[ ,sce$cluster_k60 == 10]
+# calculate the average expression for each gene and extract the top 50
+avg_10 <- rowSums(counts(sce_10))/ncol(counts(sce_10))
+top_genes_10 <- sort(avg_10, decreasing = TRUE)[1:50]
+# save result
+write.table(top_genes_10, file = here("outs", age, "top_genes_10k60_01.tsv"), sep = "\t", quote = FALSE, col.names = FALSE, row.names = TRUE)
+```
+The top expressed genes are mostly ribosomal genes, there are often very highly expressed genes, and not very informative.
+
+We perform a DE between cluster 10 and the other clusters to pull out more interesting genes from this cluster
+```{r}
+# compute markers
+if(!file.exists(here("outs", age, "markers_k60_01.RDS"))){
+  markers <- findMarkers(sce, groups = sce$cluster_k60, direction="up", lfc=1)
+  saveRDS(markers, here("outs", age, "markers_k60_01.RDS"))
+}else{
+  markers <- readRDS(here("outs", age, "markers_k60_01.RDS"))
+}
+# select cluster 10
+markers_10 <- markers[["10"]]
+top_markers <- head(markers_10, 50)
+write.csv(top_markers, here("outs", age, "top_markers_10k60_01.csv"), quote = FALSE)
+```
+
 
 ```{r result}
 sce$celltype <- sce$cluster_k60 
