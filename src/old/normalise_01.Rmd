@@ -10,7 +10,7 @@ editor_options:
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Set-up
@@ -76,8 +76,8 @@ between samples [(Lun et al.,
 
 ```{r norm}
 # Only compute if first time
-if (!(file.exists(here("processed", age,  "sce_norm.RDS")))) {
-  sce <- readRDS(here("processed", age, "sce_QC.RDS"))
+if (!(file.exists(here("processed", age,  "sce_norm_01.RDS")))) {
+  sce <- readRDS(here("processed", age, "sce_QC_01.RDS"))
   # For reproducibility
   set.seed(100)
   # Quick clustering to pool samples together and deal with 0 counts
@@ -90,9 +90,9 @@ if (!(file.exists(here("processed", age,  "sce_norm.RDS")))) {
   sce <- logNormCounts(sce)
   # Also log normalise the raw counts
   assay(sce, "logcounts_raw") <- matLog2(counts(sce))
-  saveRDS(sce, here("processed", age,  "sce_norm.RDS"))
+  saveRDS(sce, here("processed", age,  "sce_norm_01.RDS"))
 } else{
-  sce <- readRDS(here("processed", age,  "sce_norm.RDS"))
+  sce <- readRDS(here("processed", age,  "sce_norm_01.RDS"))
 }
 ```
 

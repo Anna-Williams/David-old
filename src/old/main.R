@@ -8,7 +8,7 @@ source(here("src", age, "import.R"))
 # Gene and Cell QC,
 rmarkdown::render(here("src", age, "QC_01.Rmd"))
 # normalisation
-rmarkdown::render(here("src", age, "normalise.Rmd"))
+rmarkdown::render(here("src", age, "normalise_01.Rmd"))
 #feature selection and dimensional reduction
 rmarkdown::render(here("src", age, "feature_selection_dimred.Rmd"))
 # clustering
