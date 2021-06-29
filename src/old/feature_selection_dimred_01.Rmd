@@ -7,6 +7,11 @@ output: html_document
 
 # Set-up
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
 The workflow and explanations bellow are from [OSCA](https://bioconductor.org/books/release/OSCA/dimensionality-reduction.html)
 
 ```{r set-up, message=FALSE, warning=FALSE}
@@ -22,7 +27,7 @@ age <- "old"
 ```
 
 ```{r load-sce}
-sce <- readRDS(here("processed", age, "sce_norm.RDS"))
+sce <- readRDS(here("processed", age, "sce_norm_01.RDS"))
 ```
 
 # Feature selection
@@ -112,7 +117,7 @@ plotReducedDim(sce, dimred="TSNE", colour_by="genotype", point_size=0.1, point_a
 
 ## Save objects
 ```{r}
-saveRDS(sce, here("processed", age, "sce_dimred.RDS"))
+saveRDS(sce, here("processed", age, "sce_dimred_01.RDS"))
 ```
 
 ## Session Info
