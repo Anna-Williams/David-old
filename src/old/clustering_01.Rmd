@@ -6,7 +6,10 @@ output: html_document
 ---
 ### Set-up
 
-# Set-up
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 The workflow and explanations bellow are from [OSCA](https://bioconductor.org/books/release/OSCA/dimensionality-reduction.html)
 
@@ -23,10 +26,10 @@ age <- "old"
 ```
 
 ```{r load-sce}
-if(!file.exists(here("processed", age, "sce_clusters.RDS"))){
-sce <- readRDS(here("processed", age, "sce_dimred.RDS"))
+if(!file.exists(here("processed", age, "sce_clusters_01.RDS"))){
+sce <- readRDS(here("processed", age, "sce_dimred_01.RDS"))
 } else {
-  sce <- readRDS(here("processed", age, "sce_clusters.RDS"))
+  sce <- readRDS(here("processed", age, "sce_clusters_01.RDS"))
 }
 ```
 
@@ -42,40 +45,65 @@ ks <- c(5, 10, 20, 30, 40, 50, 60)
 names <- paste0("cluster_k", as.character(ks))
 
 #only run if first time
-if(!file.exists(here("processed", age, "clusters_SNN_k5-k60.RDS"))){
+if (!file.exists(here("processed", age, "clusters_SNN_k5-k60_01.RDS"))) {
   # Compute all the cluster resolutions
   #  and save in a list with an appropriate name for later use
-  cluster_list <- 
-    mapply( function(cluster_name, k){ 
-      clusterRows(reducedDim(sce, "PCA"), NNGraphParam(k=k))
+  cluster_list <-
+    mapply(function(cluster_name, k) {
+      clusterRows(reducedDim(sce, "PCA"), NNGraphParam(k = k))
     },
     names,
     ks,
     USE.NAMES = TRUE,
-    SIMPLIFY = FALSE
-    )
-    saveRDS(cluster_list, here("processed", age, "clusters_SNN_k5-k60.RDS"))
-  
- # Use the list to store the info in the sce and plot result
- idx <- c(1:length(names))
- for( i in idx){
-   k <- ks[i]
-   cluster_name <- names[i]
-   colData(sce) <- cbind(colData(sce), cluster_list[cluster_name])
-   plotDim <- plotReducedDim(sce, "TSNE", colour_by = cluster_name, point_size=0.5, point_alpha = 0.3, text_by = cluster_name, text_size = 3)  + scale_color_hue() + ggtitle(paste("Clustering with k =", k))
-   print(plotDim)
- }
- saveRDS(sce, here("processed", age, "sce_clusters.RDS"))
+    SIMPLIFY = FALSE)
+  saveRDS(cluster_list,
+          here("processed", age, "clusters_SNN_k5-k60_01.RDS"))
+} else{
+  clusters_list <-
+    readRDS(here("processed", age, "clusters_SNN_k5-k60_01.RDS"))
+}
 
-}else{
+# only save the new sce if the object is not already here
+if(!file.exists((here("processed", age, "sce_clusters_01.RDS")))){
+  
+  # Use the list to store the info in the sce and plot result
   idx <- c(1:length(names))
-  for( i in idx){
+  for (i in idx) {
     k <- ks[i]
     cluster_name <- names[i]
-    plotDim <- plotReducedDim(sce, "TSNE", colour_by = cluster_name, point_size=0.5, point_alpha = 0.3, text_by = cluster_name, text_size = 3)  + scale_color_hue() + ggtitle(paste("Clustering with k =", k))
+    colData(sce) <- cbind(colData(sce), clusters_list[cluster_name])
+    plotDim <-
+      plotReducedDim(
+        sce,
+        "TSNE",
+        colour_by = cluster_name,
+        point_size = 0.5,
+        point_alpha = 0.3,
+        text_by = cluster_name,
+        text_size = 3
+      )  + scale_color_hue() + ggtitle(paste("Clustering with k =", k))
     print(plotDim)
   }
-  clusters_list <- readRDS(here("processed", age, "clusters_SNN_k5-k60"))
+  saveRDS(sce, here("processed", age, "sce_clusters_01.RDS"))
+  
+} else{
+  # plot directly from the sce_clusters_01.RDS
+  idx <- c(1:length(names))
+  for (i in idx) {
+    k <- ks[i]
+    cluster_name <- names[i]
+    plotDim <-
+      plotReducedDim(
+        sce,
+        "TSNE",
+        colour_by = cluster_name,
+        point_size = 0.5,
+        point_alpha = 0.3,
+        text_by = cluster_name,
+        text_size = 3
+      )  + scale_color_hue() + ggtitle(paste("Clustering with k =", k))
+    print(plotDim)
+  }
 }
 ```
 

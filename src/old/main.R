@@ -14,6 +14,6 @@ rmarkdown::render(here("src", age, "feature_selection_dimred_01.Rmd"))
 # clustering
 rmarkdown::render(here("src", age, "clustering_01.Rmd"))
 # annotation
-rmarkdown::render(here("src", age, "annotation.Rmd"))
+rmarkdown::render(here("src", age, "annotation_01.Rmd"))
 # cluster QC
 rmarkdown::render(here("src", age, "cluster_QC_k5.Rmd"))

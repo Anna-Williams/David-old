@@ -21,10 +21,10 @@ age <- "old"
 ```
 
 ```{r import}
-if (!file.exists(here("processed", age, "sce_anno.RDS"))) {
-  sce <- readRDS(here("processed", age, "sce_clusters.RDS"))
+if (!file.exists(here("processed", age, "sce_anno_01.RDS"))) {
+  sce <- readRDS(here("processed", age, "sce_clusters_01.RDS"))
 }else{
-  sce <- readRDS(here("processed", age, "sce_anno.RDS"))
+  sce <- readRDS(here("processed", age, "sce_anno_01.RDS"))
 }
 ```
 
@@ -98,6 +98,18 @@ list_plots <- lapply(c( "Cldn5",
 wrap_plots(list_plots) +  plot_annotation(title =  " Endothelial cells and pericytes")
 ```
 </details>
+
+<details>
+  <summary>Click to expand the Epithelial cells</summary>
+```{r one-line-3-col, fig.height=4, cache=TRUE}
+list_plots <- lapply(c("Ttr", "Kcnj13", "Krt18"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title =  "Choroid plexus epithelial cells")
+```
+
+</details>
+
+
 <details>
   <summary>Click to expand the Astrocytes marker plots</summary>
 ```{r 3lines-4-col-feature-plots, fig.height=8, fig.width=9, cache=TRUE}
@@ -137,7 +149,7 @@ wrap_plots(list_plots) +  plot_annotation(title = "Astrocyte mouse telecephalon"
 </details>
 
 <details>
-  <summary>Click to expand the Microglia marker plots</summary>
+  <summary>Click to expand the Immune cells plots</summary>
 
 ```{r 3lines-feature-plots3, cache=TRUE, fig.height=8}
 #Microglia and macrophages
@@ -153,6 +165,45 @@ list_plots <- lapply(c( "Cd74",
                                      "C1qa"),
             function(x)plotTSNE(sce, colour_by = x )) 
 wrap_plots(list_plots) +  plot_annotation(title = "Microglia and macrophages")
+```
+
+```{r  3-in-one-line, fig.height=4, cache=TRUE}
+# Border associated mcrophages
+list_plots <- lapply(c( "Mrc1", "Ms4a7", "Apoe"),
+            function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title = "Border associated macrophages")
+```
+
+```{r  two-lines, fig.height=8, cache=TRUE}
+# Immune cells 
+list_plots <- lapply(c( 
+  # Tcells
+  "Cd3e", 
+  # Bcells
+  "Cd19", 
+  # Natural killer
+  "Klrb1c", "Cd209a", 
+  # all immune cells (CD45)
+  "Ptprc"),
+            function(x)plotTSNE(sce, 
+                                colour_by = x ,
+                                point_alpha=0.3,
+                                point_size = 0.5)) 
+wrap_plots(list_plots) +  plot_annotation(title = "Immune cells")
+```
+
+```{r fig.height=4}
+#monocybes/neutrophils
+list_plots <- lapply(c( 
+  # monocytes
+  "S100a9",
+  #neutrophils
+  "Ly6g", "Camp"),
+            function(x)plotTSNE(sce, 
+                                colour_by = x ,
+                                point_alpha=0.3,
+                                point_size = 0.5)) 
+wrap_plots(list_plots) +  plot_annotation(title = "Monocytes and Neutorphils cells")
 ```
 
 </details>
@@ -198,38 +249,6 @@ wrap_plots(list_plots) +  plot_annotation(title =  "Ependymal")
   
 </details>
 
-## Rename the Clusters with assigned Cell Types
-
-For this first annotation we will rename the levels from the k=60 clustering as 
-follows:
-1 	Microglia-Macrophages
-2	Endothelial-Pericytes
-3	Astrocytes
-4	OPC
-5	NA
-6	Astrocytes
-7	NA
-8	Astrocytes
-9 	Oligo
-10	NA
-11	NA
-12	Oligo
-13	NA
-14	Oligo
-15	Neuron
-16 	Microglia-Macrophages
-17	Oligo?
-18	Oligo
-19	OPC
-20	Endothelial-Pericytes
-21 	Microglia-Macrophages
-22	Endothelial-Pericytes
-23	Astrocytes
-24 	Microglia-Macrophages
-
-```{r}
-plotTSNE(sce, colour_by = "cluster_k60", text_by = "cluster_k60") + scale_color_hue()
-```
 
 
 ## Extra. identify cluster 10
@@ -248,7 +267,7 @@ write.table(top_genes_10, file = here("outs", age, "top_genes_10k60_01.tsv"), se
 ```
 The top expressed genes are mostly ribosomal genes, there are often very highly expressed genes, and not very informative.
 
-We perform a DE between cluster 10 and the other clusters to pull out more interesting genes from this cluster
+We perform a DE between cluster 10 and the other clusters to pull out more interesting genes from this cluster, this also yields ribosomal genes and genes that do not seem specific to any particular celltype. We will have a closer look in the cluster QC.
 ```{r}
 # compute markers
 if(!file.exists(here("outs", age, "markers_k60_01.RDS"))){
@@ -264,11 +283,47 @@ write.csv(top_markers, here("outs", age, "top_markers_10k60_01.csv"), quote = FA
 ```
 
 
+## Rename the Clusters with assigned Cell Types
+
+For this first annotation we will rename the levels from the k=60 clustering as 
+follows:
+1 	Microglia-Macrophages
+2	Endothelial-Pericytes
+3	Astrocytes
+4	OPC
+5	Immune
+6	Astrocytes
+7	Monocytes
+8	Astrocytes
+9 	Oligo
+10	NA
+11	Chp-epithelial
+12	Oligo
+13	NA
+14	Oligo
+15	Neuron
+16 	Microglia-Macrophages-BAM
+17	Oligo?
+18	Oligo
+19	OPC
+20	Endothelial-Pericytes
+21 	Microglia-Macrophages
+22	Endothelial-Pericytes
+23	Astrocytes
+24 	Microglia-Macrophages
+
+```{r}
+plotTSNE(sce, colour_by = "cluster_k60", text_by = "cluster_k60") + scale_color_hue()
+```
+
 ```{r result}
+if (!file.exists(here("processed", age, "sce_anno_01.RDS"))) {
 sce$celltype <- sce$cluster_k60 
 # add the celltypes as described above in the correct order to replace the levels.
-levels(sce$celltype)<-c("Microglia-Macrophages", "Endothelial-Pericytes", "Astrocytes", "OPC", "NA", "Astrocytes", "NA", "Astrocytes", "Oligo", "NA", "NA", "Oligo", "NA", "Oligo", "Neuron", "Microglia-Macrophages", "Oligo?", "Oligo", "OPC", "Endothelial-Pericytes", "Microglia-Macrophages", "Endothelial-Pericytes", "Astrocytes", "Microglia-Macrophages")
+levels(sce$celltype)<-c("Microglia-Macrophages", "Endothelial-Pericytes", "Astrocytes", "OPC", "Immune", "Astrocytes", "Monocytes", "Astrocytes", "Oligo", "NA", "ChP-epithelial", "Oligo", "NA", "Oligo", "Neuron", "Microglia-Macrophages-BAM", "Oligo?", "Oligo", "OPC", "Endothelial-Pericytes", "Microglia-Macrophages", "Endothelial-Pericytes", "Astrocytes", "Microglia-Macrophages")
+ saveRDS(sce, here("processed", age, "sce_anno.RDS"))
+}
 plotTSNE(sce, colour_by = "celltype", text_by = "cluster_k60") + scale_color_hue()
-saveRDS(sce, here("processed", age, "sce_anno.RDS"))
+
 ```
 
