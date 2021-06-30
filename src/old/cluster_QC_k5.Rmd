@@ -152,7 +152,11 @@ even absent in the fire mice nothing stands out.
 
 ### Clusters of doublet cells
 
-Detection of clusters formed by doublets/multiplets (i.e. multiple cells captured within the same droplet or reaction volume). The function test each cluster against the null hypothesis that it _does_ consist of doublets. The null is rejected if a cluster has many DE genes that lie outside the expression limits defined by the “source” clusters.
+Detection of clusters formed by doublets/multiplets (i.e. multiple cells
+captured within the same droplet or reaction volume). The function test each
+cluster against the null hypothesis that it *does* consist of doublets. The null
+is rejected if a cluster has many DE genes that lie outside the expression
+limits defined by the "source" clusters.
 
 ```{r}
 if(!file.exists(here("outs",age,  "doublet_clusters_k5_res.csv"))){
@@ -166,7 +170,18 @@ if(!file.exists(here("outs",age,  "doublet_clusters_k5_res.csv"))){
 }
 ```
 
-Analyse the results, this includes filtering for the clusters where the null hypothesis (of being a doublet) was not rejected at a significance level of 5%, filter for the ones that are in average formed by cells with bigger library sizes than its source clusters ( the umi counts of a doublet is expected to be larger than for a single cell). Finally plot the clusters that were not already detected as poorer quality, along with the source clusters to have a closer look at these potential doublet cells. 
+Analyse the results, this includes:
+
+-   filtering for the clusters where the null hypothesis (of being a doublet)
+    was not rejected at a significance level of 5%
+
+-   filter for the clusters that are in average formed by cells with bigger
+    library sizes than its source clusters ( the umi counts of a doublet is
+    expected to be larger than for a single cell).
+
+-   Finally plot the clusters that were not already detected as poorer quality,
+    along with the source clusters to have a closer look at these potential
+    doublet cells.
 
 ```{r}
 # filter rows where the null hypothesis was not rejected
@@ -185,24 +200,26 @@ plotTSNE(sce[,sce$cluster_k5 %in% c(dbl_exploratory$cluster, dbl_exploratory$sou
 
 ```
 
+Cluster 20 is detected as a doublet cluster between 45 and 24. All these three
+clusters are Oligodendrocytes, this "doublet" cluster might simply be to close
+similarity between the clusters.
 
+Cluster 31 is potentially only a subtype of Endothelial/Pericyte cells, as it is
+flagged as a possible doublet from 29 (Endothelial/Pericyte) and 6 ( low quality
+cluster, unknown cell type).
 
-Cluster 20 is detected as a doublet cluster between 45 and 24. The cluster 20 is clustered with 45 in the next resolution, therfore it might just be due to the close similarity between this two clusters. 
-The other 3 clusters are doublets of:
-9: Astrocytes and Microglia, 
-31: Endothelial cells and unknown
-53: Oligodendrocytes and microglia. 
+Cluster 9: is a doublet between Astrocytes (17) and Microglia(30).
 
-**TODO:** check with David 9 and 53 are doublets, and there is not known celltypes that could express combinations of these celltypes.
+53: is a doublet between Oligodendrocytes (21) and microglia (11).
 
 ```{r}
-doublets <- c(9, 31, 53)
+doublets <- c(9, 53)
 ```
-
 
 ### Control vs fire mice
 
-We want to have a closer look at the clusters that do have a difference between the knockout and the wild type before deleting the clusters.
+We want to have a closer look at the clusters that do have a difference between
+the knockout and the wild type before deleting the clusters.
 
 ```{r fig.width=10, message=FALSE}
 # divide the two objects
@@ -224,9 +241,9 @@ ncol = 2
 
 #### Proportion KO-WT
 
-In order to visualise the proportions from KO and WT for each cluster, we
-do not take in consideration the microglia clusters, as these are only present in the control, and we normalise per number
-of cells per cluster.
+In order to visualise the proportions from KO and WT for each cluster, we do not
+take in consideration the microglia clusters, as these are only present in the
+control, and we normalise per number of cells per cluster.
 
 ```{r}
 # delete the microglia
@@ -254,7 +271,6 @@ prop_per_gnt_no_mc %>%
 
 visualise in a plot
 
-
 ```{r plot}
 ggplot(data = prop_per_gnt_no_mc, aes(x = cluster, y = Proportion, fill = Genotype)) +
   geom_bar(position = "fill", stat = "identity") + theme_classic() 
@@ -278,7 +294,8 @@ difference_KO_WT <-
   .$cluster
 ```
 
-The clusters with more than `r ko_pct` % cells from the KO animals that were previously flagged as lower quality are:
+The clusters with more than `r ko_pct` % cells from the KO animals that were
+previously flagged as lower quality are:
 
 ```{r}
 gt_ko_pct <- unique(sce$cluster_k5[sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters) &
@@ -287,12 +304,18 @@ gt_ko_pct <- unique(sce$cluster_k5[sce$cluster_k5 %in% c( high_mt_clusters, low_
 
 `r gt_ko_pct`
 
+6 and 27 are very low quality non identified cells, most likely only clustering
+due to the quality and will be deleted.
 
- 6 and 27 are very low quality non identified cells, most likely only clustering due to the quality and will be deleted. 
- 
- 37 is close to the big high mt. oligo cluster we are deleting. It does not have high mt but does have very low umi counts. This will also be deleted. 
- 
-32 and 23 are two small neuronal clusters (part of cluster 15 at k60) (approx. 70% KO). The other small neuronal clusters around, 36 and 12, would be deleted with the chosen thresholds (approx. 55% KO). However as cluster 15 (at k60) is the only neuronal cluster this whole cluster will be kept even though it is borderline in terms of quality. More information supporting this choice can be found in the cluster_QC_k60 and the first annotation files.
+37 is close to the big high mt. oligo cluster we are deleting. It does not have
+high mt but does have very low umi counts. This will also be deleted.
+
+32 and 23 are two small neuronal clusters (part of cluster 15 at k60) (approx.
+70% KO). The other small neuronal clusters around, 36 and 12, would be deleted
+with the chosen thresholds (approx. 55% KO). However as cluster 15 (at k60) is
+the only neuronal cluster this whole cluster will be kept even though it is
+borderline in terms of quality. More information supporting this choice can be
+found in the cluster_QC_k60 and the first annotation files.
 
 ```{r}
 # the cluster 15 from k60 is formed by the clusters bellow at k5 (cluster tree in clustering_01)
@@ -307,8 +330,8 @@ We filter out the clusters highlighted as:
 
 -   high mt : majority of cells having more than 10 % mitochondrial genes
 
--   doublets: their expression profile lie between two other “source” clusters.
-**TODO:** check with David 9 and 53 are doublets, and there is not known celltypes that could express these combinations.
+-   doublets: their expression profile lie between two other "source" clusters,
+    from which it is not expected to have intermediate cell types.
 
 ```{r filterout}
 sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters, doublets) &
