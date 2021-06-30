@@ -31,7 +31,7 @@ age <- "old"
 ```
 
 ```{r load}
-sce <- readRDS(here("processed", age, "sce_clusters.RDS"))
+sce <- readRDS(here("processed", age, "sce_clusters_01.RDS"))
 ```
 
 ### Introduction
