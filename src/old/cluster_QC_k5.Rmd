@@ -31,7 +31,7 @@ age <- "old"
 ```
 
 ```{r load}
-sce <- readRDS(here("processed", age, "sce_clusters_01.RDS"))
+sce <- readRDS(here("processed", age, "sce_anno_01.RDS"))
 ```
 
 ### Introduction
@@ -408,6 +408,7 @@ if (!file.exists(here("processed", age, "sce_clusterQC_with_ribo.RDS"))){
 
 
 ```
+
 There are `r filter_out` cells filtered out and the final object has
 `r sum(sce$filter_out == FALSE)`cells.
 
