@@ -30,6 +30,10 @@ if (!file.exists(here("processed", age, "sce_anno_01.RDS"))) {
   sce <- readRDS(here("processed", age, "sce_anno_01.RDS"))
 }
 ```
+## Clustering at k60
+```{r}
+plotTSNE(sce, colour_by = "cluster_k60", text_by = "cluster_k60") + scale_color_hue()
+```
 
 ## Annotation
 
@@ -469,9 +473,6 @@ clustering as follows:
 
 24 Microglia-Macrophages
 
-```{r}
-plotTSNE(sce, colour_by = "cluster_k60", text_by = "cluster_k60") + scale_color_hue()
-```
 
 ```{r result}
 if (!file.exists(here("processed", age, "sce_anno_01.RDS"))) {
