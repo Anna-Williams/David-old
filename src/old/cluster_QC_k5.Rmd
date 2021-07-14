@@ -132,14 +132,10 @@ The clusters flagged are `r high_mt_clusters`.
 
 ### Ribosomal genes
 
-During the first annotation a cluster was highlighted as most of the marker
-genes (from highly expressed and DE with other clusters) are ribosomal genes
-(cluster 10 at k60, cluster 12 k5). As advised [in this github
-comment](https://github.com/satijalab/seurat/issues/759#issuecomment-643784886)
-the cluster will be removed.
-
-To further visualise the ribosomal content in the whole dataset we plotted the
-cells according to their ribosomal content.
+To visualise the ribosomal content in the whole dataset we plotted the cells
+according to their ribosomal content. High ribosomal content in one cluster,
+that expresses a mix profile, could indicate that the cells are clustering based
+on ribosomal gene content.
 
 ```{r}
 # the cluster 
@@ -156,21 +152,14 @@ sce$subsets_ribo_detected <- ribo_qc$subsets_ribo_detected
 
 ```{r}
 plotTSNE(sce, colour_by = "subsets_ribo_percent") + 
-  ggtitle("Percentatge mithocondrial genes")
-
-sce$ribo_high <- ifelse(sce$subsets_ribo_percent > 10, TRUE, FALSE)
-plotTSNE(sce, colour_by = "ribo_high") + 
-  ggtitle("Percentatge mithocondrial genes")
+  ggtitle("Percentatge ribosomal genes")
 ```
 
-The left most cluster is cluster 10 at k60, 12 at k5, that will removed as it
-expresses markers from different celltypes and seem to only be driven by its
-ribosomal content (more information in annotation_01).
-
-```{r}
-ribo_cluster <- "2"
-
-```
+Some clusters have higher ribosomal content, these are immune clusters.
+Ribosomal genes can be highly expressed in active cell. Further investigation
+has been performed to confirm this is a biological difference: the cells are
+still clustering together after deleting the ribosomal genes from the variable
+features.
 
 ### Number of mice per cluster
 
@@ -376,11 +365,10 @@ We filter out the clusters highlighted as:
 -   doublets: their expression profile lie between two other "source" clusters,
     from which it is not expected to have intermediate cell types.
 
--   ribosomal content: cluster which expression is mixed between different
-    celltypes and is only driven by the ribosomal content.
-
 ```{r filterout}
-sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters, doublets, ribo_cluster) &
+#sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters, doublets, ribo_cluster) #&
+#                !(sce$cluster_k5 %in% neuro)
+sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters, doublets) &
                 !(sce$cluster_k5 %in% neuro)
 filter_out <- sum(sce$filter_out)
 plotTSNE(sce, colour_by = "filter_out", point_size=0.5,
@@ -394,20 +382,6 @@ if (!file.exists(here("processed", age, "sce_clusterQC.RDS"))){
 
 ```
 
-```{r filterout-2}
-sce$filter_out <- sce$cluster_k5 %in% c( high_mt_clusters, low_umi_clusters, doublets) &
-                !(sce$cluster_k5 %in% neuro)
-filter_out <- sum(sce$filter_out)
-plotTSNE(sce, colour_by = "filter_out", point_size=0.5,
-         point_alpha = 0.3, text_by = "cluster_k5", text_size = 3) 
-
-if (!file.exists(here("processed", age, "sce_clusterQC_with_ribo.RDS"))){
- sce <- sce[, sce$filter_out == FALSE]
- saveRDS(sce, here("processed", age, "sce_clusterQC_with_ribo.RDS"))
-}
-
-
-```
 
 There are `r filter_out` cells filtered out and the final object has
 `r sum(sce$filter_out == FALSE)`cells.
@@ -416,11 +390,7 @@ There are `r filter_out` cells filtered out and the final object has
 
 <details>
 
-<summary>
-
-Click to expand
-
-</summary>
+<summary> Click to expand </summary>
 
 ```{r session-info}
 sessionInfo()
