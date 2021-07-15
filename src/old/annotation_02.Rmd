@@ -1,0 +1,521 @@
+---
+title: "Annotation cluster k20"
+author: "NadineBestard"
+date: "30/03/2021"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, message=FALSE, warning=FALSE}
+library(here) #reproducible paths
+library(scater) #feature plots
+library(patchwork) # agregate plots
+library(scran) # for findmarkers
+```
+
+```{r age}
+age <- "old"
+```
+
+```{r import}
+if (!file.exists(here("processed", age, "sce_anno_02.RDS"))) {
+  sce <- readRDS(here("processed", age, "sce_clusters_02.RDS"))
+}else{
+  sce <- readRDS(here("processed", age, "sce_anno_02.RDS"))
+}
+```
+
+## Annotation
+
+We make a first rough annotation using known markers for different
+celltypes.
+
+
+```{r}
+plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_hue()
+```
+
+<details>
+
+<summary> Click to expand the Neurons marker plots </summary>
+
+```{r 4-feature-plots, cache=TRUE}
+#Neurons:
+list_plots <- lapply(c("Snap25", "Stmn2", "Rbfox3", "Gabrb2"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+
+wrap_plots(list_plots) +  plot_annotation(title = "Neurons")
+```
+
+```{r violin-neuro, fig.height=4}
+plotExpression(sce, features=c("Snap25", "Stmn2", "Rbfox3", "Gabrb2") ,
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+```{r 4-feature-plots-default, cache=TRUE}
+#Inhibitory neurons
+
+list_plots <- lapply(c("Gad1", "Gad2", "Slc32a1", "Pvalb"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title =  "Inhibitory Neurons")
+```
+
+```{r violin-neuroin, fig.height=4, cache=TRUE}
+plotExpression(sce, features=c("Gad1", "Gad2", "Slc32a1", "Pvalb"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+```{r one-line, fig.height=3, fig.width=9, cache=TRUE}
+# Excitatory neurons
+
+list_plots <- lapply(c("Satb2", "Slc12a6", "Slc17a7"),
+                     function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title =  "Exitatory Neurons")
+```
+
+```{r violin-neuroex, fig.height=3, cache=TRUE}
+plotExpression(sce, features=c("Satb2", "Slc12a6", "Slc17a7"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+```{r 4-plots, cache=TRUE}
+# RBFOX3 (and other Granulate cell markers)
+list_plots <- lapply(c("Cdh15", "Calb2", "Rbfox3", "Reln"),
+function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title =  "RBFO3+ Neurons")
+```
+
+```{r violin-neurorbfox, fig.height=4, cache=TRUE}
+plotExpression(sce, features=c("Cdh15", "Calb2", "Rbfox3", "Reln"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+</details>
+
+<details>
+
+<summary> Click to expand the Stromal marker plots </summary>
+
+```{r small-feature-plots2, cache=TRUE}
+#Stromal
+
+list_plots <- lapply(c( "Lamb1" , 
+                                     "Hspg2", 
+                                     "Col4a1", 
+                                     "Fn1", 
+                                     "Lama2"),
+            function(x) plotTSNE(sce, colour_by = x ))
+
+wrap_plots(list_plots) +  plot_annotation(title =  "Stromal")
+```
+
+```{r violin-stromal, fig.height=5, cache=TRUE}
+plotExpression(sce, features=c( "Lamb1" , 
+                                     "Hspg2", 
+                                     "Col4a1", 
+                                     "Fn1", 
+                                     "Lama2"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+```{r 3lines-feature-plots, fig.height=8, cache=TRUE}
+# Endothelial cells and pericytes
+
+list_plots <- lapply(c( "Cldn5",   
+                                     "Icam2",
+                                     "Pdgfrb", 
+                                     "Notch3", 
+                                     "Vwf",
+                                     "Flt1",
+                                     "Mecom"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title =  " Endothelial cells and pericytes")
+```
+
+```{r violin-endo, fig.height=7, cache=TRUE}
+plotExpression(sce, features=c( "Cldn5",   
+                                     "Icam2",
+                                     "Pdgfrb", 
+                                     "Notch3", 
+                                     "Vwf",
+                                     "Flt1",
+                                     "Mecom"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+</details>
+
+<details>
+
+<summary>Click to expand the Epithelial cells </summary>
+
+```{r one-line-3-col, fig.height=3, fig.width=9, cache=TRUE}
+list_plots <- lapply(c("Ttr", "Kcnj13", "Krt18"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title =  "Choroid plexus epithelial cells")
+```
+
+```{r violin-epi, fig.height=3, cache=TRUE}
+plotExpression(sce, features=c("Ttr", "Kcnj13", "Krt18"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+</details>
+
+<details>
+
+<summary>
+
+Click to expand the Astrocytes marker plots
+
+</summary>
+
+```{r 3lines-4-col-feature-plots, fig.height=7, fig.width=9, cache=TRUE}
+# Astrocytes
+
+list_plots <- lapply(c("Gja1",
+                                    "Aqp4", 
+                                    "Glul", 
+                                    "Sox9", 
+                                    "Ndrg2", 
+                                    "Gfap", 
+                                    "Aldh1a1", 
+                                    "Aldh1l1", 
+                                    "Vim", 
+                                    "Apoe", 
+                                    "Fgfr3"),
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title = "Astrocyte")
+```
+
+```{r violin-astro, fig.height=11, cache=TRUE}
+plotExpression(sce, features=c("Gja1",
+                                    "Aqp4", 
+                                    "Glul", 
+                                    "Sox9", 
+                                    "Ndrg2", 
+                                    "Gfap", 
+                                    "Aldh1a1", 
+                                    "Aldh1l1", 
+                                    "Vim", 
+                                    "Apoe", 
+                                    "Fgfr3"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+```{r 3lines-feature-plots-2, cache=TRUE, fig.height=9, fig.width=9}
+#Astrocyte markers as described in Zeisel et al. 2018 in the mouse for telencephalon and non-telencephalon astrocytes
+
+list_plots <- lapply(c( "Agt", 
+                                     "Mfge8",  
+                                     "Slc6a11",
+                                     "Slc6a9", 
+                                     "Gdf10",
+                                     "Islr",
+                                     "Gfap",
+                                     "Aqp4")  ,
+                     function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title = "Astrocyte mouse telecephalon")
+```
+
+</details>
+
+<details>
+
+<summary> Click to expand the Immune cells plots </summary>
+
+```{r 3lines-feature-plots3, cache=TRUE, fig.height=8}
+#Microglia and macrophages
+
+list_plots <- lapply(c( "Cd74", 
+                                     "Spi1", 
+                                     "Mrc1", 
+                                     "Tmem119", 
+                                     "Cx3cr1", 
+                                     "Aif1",
+                                     "P2ry12",
+                                     "C1qc",
+                                     "C1qa"),
+            function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title = "Microglia and macrophages")
+```
+
+```{r violin-micro, fig.height=9, cache=TRUE}
+plotExpression(sce, features=c( "Cd74", 
+                                     "Spi1", 
+                                     "Mrc1", 
+                                     "Tmem119", 
+                                     "Cx3cr1", 
+                                     "Aif1",
+                                     "P2ry12",
+                                     "C1qc",
+                                     "C1qa"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+```{r  3-in-one-line, fig.height=4, cache=TRUE}
+# Border associated mcrophages
+list_plots <- lapply(c( "Mrc1", "Ms4a7", "Apoe"),
+            function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title = "Border associated macrophages")
+```
+
+```{r violin-bam, fig.height=3, cache=TRUE}
+plotExpression(sce, features=c( "Mrc1", "Ms4a7", "Apoe"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+```{r  two-lines, fig.height=8, cache=TRUE}
+# Immune cells 
+list_plots <- lapply(c( 
+  # Tcells
+  "Cd3e", 
+  # Bcells
+  "Cd19", 
+  # Natural killer
+  "Klrb1c", "Cd209a", 
+  # all immune cells (CD45)
+  "Ptprc"),
+            function(x)plotTSNE(sce, 
+                                colour_by = x ,
+                                point_alpha=0.3,
+                                point_size = 0.5)) 
+wrap_plots(list_plots) +  plot_annotation(title = "Immune cells")
+```
+
+```{r violin-immuno, fig.height=5, cache=TRUE}
+plotExpression(sce, features=c( 
+  # Tcells
+  "Cd3e", 
+  # Bcells
+  "Cd19", 
+  # Natural killer
+  "Klrb1c", "Cd209a", 
+  # all immune cells (CD45)
+  "Ptprc"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+```{r fig.height=4}
+#monocybes/neutrophils
+list_plots <- lapply(c( 
+  # monocytes
+  "S100a9",
+  #neutrophils
+  "Ly6g", "Camp"),
+            function(x)plotTSNE(sce, 
+                                colour_by = x ,
+                                point_alpha=0.3,
+                                point_size = 0.5)) 
+wrap_plots(list_plots) +  plot_annotation(title = "Monocytes and Neutorphils cells")
+```
+
+```{r violin-mono, fig.height=3, cache=TRUE}
+plotExpression(sce, features=c( 
+   # monocytes
+  "S100a9",
+  #neutrophils
+  "Ly6g", "Camp"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+</details>
+
+<details>
+
+<summary> Click to expand the Oligodendroglia marker plots </summary>
+
+```{r big-feature-plots4, cache=TRUE, fig.height=8}
+#OPCs
+
+list_plots <- lapply(c("Pdgfra", 
+                                    "Cspg4", 
+                                    "Gpr17", 
+                                    "Ptprz1",
+                                    "Olig1", 
+                                    "Olig2", 
+                                    "Pcdh15", 
+                                    "Ptgds",
+                                    "Bcan"),
+            function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title = "OPCS")
+```
+
+```{r violin-opc, fig.height=9, cache=TRUE}
+plotExpression(sce, features=c("Pdgfra", 
+                                    "Cspg4", 
+                                    "Gpr17", 
+                                    "Ptprz1",
+                                    "Olig1", 
+                                    "Olig2", 
+                                    "Pcdh15", 
+                                    "Ptgds",
+                                    "Bcan"),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+```{r big-feature-plots5, cache=TRUE, fig.height=8}
+#Oligodendrocytes
+
+list_plots <- lapply(c("Plp1", 
+                                    "Cnp", 
+                                    "Mag", 
+                                    "Mog", 
+                                    "Mobp", 
+                                    "Mbp", 
+                                    "Sox10" ), 
+            function(x)plotTSNE(sce, colour_by = x ))
+wrap_plots(list_plots) +  plot_annotation(title =  "Oligodendrocytes")
+```
+
+```{r violin-oligo, fig.height=7, cache=TRUE}
+plotExpression(sce, features=c("Plp1", 
+                                    "Cnp", 
+                                    "Mag", 
+                                    "Mog", 
+                                    "Mobp", 
+                                    "Mbp", 
+                                    "Sox10" ),
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+```
+
+</details>
+
+<details>
+
+<summary> Click to expand the ependymal marker plots </summary>
+
+```{r ependymal, fig.height=8, fig.width=9, cache=TRUE}
+list_plots <- lapply(c("Vit", "Sox9", "Dynlrb2", "Ccdc153", "Rsph1", "Tm4sf1", "Pcp4l1", "Pcp4", "Hspa2", "Cd24a", "Mt2", "Chchd10"), 
+           function(x)plotTSNE(sce, colour_by = x )) 
+wrap_plots(list_plots) +  plot_annotation(title =  "Ependymal")
+
+```
+
+</details>
+
+## Run differential expression
+
+In order to help with the identification of we pull out the
+most expressed genes, and the DE with the other clusters.
+
+TODO
+```{r eval=FALSE, include=FALSE}
+# subset only the cluster of interest
+sce_10 <- sce[ ,sce$cluster_k20 == 10]
+# calculate the average expression for each gene and extract the top 50
+avg_10 <- rowSums(counts(sce_10))/ncol(counts(sce_10))
+top_genes_10 <- sort(avg_10, decreasing = TRUE)[1:50]
+# save result
+write.table(top_genes_10, file = here("outs", age, "top_genes_10k20_02.tsv"), sep = "\t", quote = FALSE, col.names = FALSE, row.names = TRUE)
+```
+
+We perform a DE between  each cluster and the other clusters to pull out
+more interesting genes from each cluster, this also yields ribosomal
+genes and genes that do not seem specific to any particular celltype. We
+will have a closer look in the cluster QC.
+
+```{r eval=FALSE, include=FALSE}
+# compute markers
+if(!file.exists(here("outs", age, "markers_k20_01.RDS"))){
+  markers <- findMarkers(sce, groups = sce$cluster_k20, direction="up", lfc=1)
+  saveRDS(markers, here("outs", age, "markers_k20_01.RDS"))
+}else{
+  markers <- readRDS(here("outs", age, "markers_k20_01.RDS"))
+}
+# select cluster 10
+markers_10 <- markers[["10"]]
+top_markers <- head(markers_10, 50)
+write.csv(top_markers, here("outs", age, "top_markers_10k20_01.csv"), quote = FALSE)
+```
+
+## Rename the Clusters with assigned Cell Types
+
+For this first annotation we will rename the levels from the k=20
+clustering as follows:
+
+1 Neuron, This splits at k10
+
+2 Endothelial-Pericytes
+
+3 Endothelial-Pericytes, with some RELN+, should I go higher resolution?... 
+
+4 Immune-Monocytes
+
+5 Astrocyte-Oligo
+
+6 Immune-Microglia-Macrophages. They could be distinguished at higher resolution
+
+7 Endothelial-Pericytes
+
+8 Immune
+
+9 ChP-Epithelial
+
+10 OPC
+
+11 Astrocyte
+
+12 Oligo
+
+13 Astrocyte
+
+14 Astrocyte
+
+15 Oligo
+
+16 Immune
+
+17 Immune
+
+18 Neuron
+
+19 Immune-BAM
+
+20 Pvalb-Astrocyte
+
+21 Immune
+
+22 Cldn5-Astrocyte-Plp1
+
+In one line:
+"Neuron","Endothelial-Pericytes","Endothelial-Pericytes ","Immune-Monocytes","Astrocyte-Oligo","Immune-Microglia-Macrophages","Endothelial-Pericytes","Immune","ChP-Epithelial","OPC","Astrocyte","Oligo","Astrocyte","Astrocyte","Oligo","Immune","Immune","Neuron","Immune-BAM","Pvalb-Astrocyte","Immune","Cldn5-Astrocyte-Plp1"
+
+```{r}
+plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_hue()
+```
+
+```{r result}
+if (!file.exists(here("processed", age, "sce_anno_02.RDS"))) {
+sce$celltype <- sce$cluster_k20 
+# add the celltypes as described above in the correct order to replace the levels.
+levels(sce$celltype) <- c("Neuron","Endothelial-Pericytes","Endothelial-Pericytes","Immune-Monocytes","Astrocyte-Oligo","Immune-Microglia-Macrophages","Endothelial-Pericytes","Immune","ChP-Epithelial","OPC","Astrocyte","Oligo","Astrocyte","Astrocyte","Oligo","Immune","Immune","Neuron","Immune-BAM","Astrocyte-Pvalb","Immune","Astrocyte-Plp1-Cldn5")
+# and the clusters named to keep the resolution
+sce$cluster_k20_named <- sce$cluster_k20 
+levels(sce$cluster_k20_named) <- c("Neuron_1","Endothelial-Pericytes_1","Endothelial-Pericytes_2","Immune-Monocytes","Astrocyte-Oligo","Immune-Microglia-Macrophages","Endothelial-Pericytes_3","Immune_1","ChP-Epithelial","OPC","Astrocyte_1","Oligo_2","Astrocyte_2","Astrocyte_3","Oligo_1","Immune_2","Immune_3","Neuron_2","Immune-BAM","Astrocyte-Pvalb","Immune_4","Astrocyte-Plp1-Cldn5")
+ saveRDS(sce, here("processed", age, "sce_anno_02.RDS"))
+}
+plotTSNE(sce, colour_by = "celltype", text_by = "cluster_k20_named", text_size = 3) + scale_color_hue()
+```
+
+
+```{r eval=FALSE, include=FALSE}
+plotReducedDimRepel(sce, dimred = "TSNE", colour_by = "celltype", text_by = "cluster_k20_named", text_size = 3) + scale_color_hue()
+```
+## Session Info
+
+<details>
+
+<summary> Click to expand </summary>
+
+```{r session-info}
+sessionInfo()
+```
+
+</details>

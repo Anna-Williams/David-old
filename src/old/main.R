@@ -17,3 +17,11 @@ rmarkdown::render(here("src", age, "clustering_01.Rmd"))
 rmarkdown::render(here("src", age, "annotation_01.Rmd"))
 # cluster QC
 rmarkdown::render(here("src", age, "cluster_QC_k5.Rmd"))
+# stricter thresholds in cell and gene QC
+source(here("src", age, "QC_normalise_02.R"))
+# redo a feature selection and dimensional reduction
+rmarkdown::render(here("src", age, "feature_selection_dimred_02.Rmd"))
+# redo clustering 
+rmarkdown::render(here("src", age, "clustering_02.Rmd"))
+# redo annotation
+rmarkdown::render(here("src", age, "annotation_02.Rmd"))

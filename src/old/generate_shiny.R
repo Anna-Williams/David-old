@@ -4,7 +4,7 @@ library(here)
 
 age <- "old" 
 
-sce <- readRDS(here("processed", age, "sce_anno.RDS"))
+sce <- readRDS(here("processed", age, "sce_anno_02.RDS"))
 
 # remove unwanted dimensional reductions
  reducedDim(sce, "PCA_all") <- NULL

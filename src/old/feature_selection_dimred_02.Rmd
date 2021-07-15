@@ -1,0 +1,114 @@
+---
+title: "Feature Selection and Dimensional reduction"
+author: "NadineBestard"
+date: "10/03/2021"
+output: html_document
+---
+
+# Set-up
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r set-up, message=FALSE, warning=FALSE}
+library(SingleCellExperiment)
+library(scran) # For feature selcetion
+library(scater) # for pca
+library(ggplot2) # modify plots
+library(here) #reproducible paths
+```
+
+```{r}
+age <- "old"
+```
+
+```{r load-sce}
+sce <- readRDS(here("processed", age,  "sce_norm_02.RDS"))
+
+```
+
+# Feature selection
+
+After the quality control the variable genes need to be selected again to better represent the variance in this cleaned dataset.
+We follow the same methods than for our first feature selection, selecting here for 
+the top 2000 genes.
+
+```{r}
+#The density weights are removed because the genes
+# with highest mean abundance are also HVG, this avoids overfiting
+gene_var_df <- modelGeneVar(sce, density.weights=FALSE )
+gene_var <- metadata(gene_var_df)
+plot(gene_var$mean, gene_var$var, xlab= "Mean of log-expression", ylab= "Variance of log-expression")
+curve(gene_var$trend(x), lwd=2, add=T, col = "red")
+# select hvgs
+hvgs <- getTopHVGs(gene_var_df, n=2000)
+# save them in the object
+rowSubset(sce) <- hvgs
+```
+
+# Dimensionality reduction
+
+## Run PCA and choose PCs
+```{r}
+set.seed(1000)
+sce <- runPCA(sce)
+```
+
+```{r}
+pct_var <- attr(reducedDim(sce, "PCA"), "percentVar")
+plot(pct_var, log="y", xlab="PC", ylab="pct variance explained")
+```
+
+
+ will keep 26 PCs, as there is a drop between 25 and 26 PCs in 
+the elbow plot. 
+
+```{r}
+#keep the previous dimensional reduction just in case
+reducedDim(sce, "PCA_all") <- reducedDim(sce, "PCA")
+# And replace the default PCA with the reduced PCs
+reducedDim(sce, "PCA") <- reducedDim(sce, "PCA")[,1:26]
+```
+
+## Visualisation
+For visualisation, reduce to 2 dimensions. Non linear reductions.
+
+### UMAP
+```{r}
+sce <- runUMAP(sce, dimred="PCA")
+plotReducedDim(sce, dimred="UMAP", colour_by="genotype", point_size=0.1, point_alpha = 0.3)
+```
+
+### tSNE
+```{r}
+sce <- runTSNE(sce, dimred="PCA")
+plotReducedDim(sce, dimred="TSNE", colour_by="genotype", point_size=0.1, point_alpha = 0.3)
+```
+
+Visualise with the preliminary annotation.
+```{r}
+plotReducedDim(sce, dimred="TSNE", colour_by="celltype", text_by = "celltype", point_size=0.1, point_alpha = 0.3)
+```
+
+Visualise with the old clustering annotation. 
+```{r}
+plotReducedDim(sce, dimred="TSNE", colour_by="celltype", text_by = "cluster_k60", point_size=0.1, point_alpha = 0.3)
+```
+
+## Save objects
+```{r}
+saveRDS(sce, here("processed", age, "sce_dimred_02.RDS"))
+```
+
+## Session Info
+
+<details>
+
+<summary>Click to expand</summary>
+
+```{r session-info}
+sessionInfo()
+```
+
+</details>
