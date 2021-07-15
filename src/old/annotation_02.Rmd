@@ -430,21 +430,25 @@ write.table(top_genes_k20, file = here("outs", age, "top_genes_k20_02.tsv"), sep
 }
 ```
 
-We compute here a pairwise differential expression between all the clusters. The results are saved in a list of dataframes, 
-one for each cluster. 
+We compute here a pairwise differential expression between all the clusters. The results are saved in a list of dataframes, "markers_k20_02/markers_k20_02.RDS"
+one for each cluster. A .csv file (that can be opened with a spreadsheet program) for each cluster is available in "markers_k20_02".
 
-```{r eval=FALSE, include=FALSE}
+The default philosophy of findMarkers() is to identify a combination of marker genes that - together - uniquely define one cluster against the rest. To this end, we collect the top DE genes from each pairwise comparison involving a particular cluster to assemble a set of candidate markers for that cluster. 
+Of particular interest is the `Top` field. The set of genes with `Top` $≤X$ is the union of the top $X$ genes (ranked by p-value) from each pairwise comparison involving the cluster of interest. For example, the set of all genes with `Top` values of 1 contains the gene with the lowest p-value from each comparison. Similarly, the set of genes with `Top` values less than or equal to 10 contains the top 10 genes from each comparison.
+
+```{r markers}
 # compute markers
-if(!file.exists(here("outs", age, "markers_k20_01.RDS"))){
+if(!file.exists(here("outs", age, "markers_k20_02", "markers_k20_02.RDS"))){
+  dir.create(here("outs", age, "markers_k20_02"))
   markers <- findMarkers(sce, groups = sce$cluster_k20, direction="up", lfc=1)
-  saveRDS(markers, here("outs", age, "markers_k20_01.RDS"))
-}else{
-  markers <- readRDS(here("outs", age, "markers_k20_01.RDS"))
+  saveRDS(markers, here("outs", age,"markers_k20_02", "markers_k20_02.RDS"))
+  # save the top 100 genes for each one of the df
+  lapply(names(markers), function(x){
+    top_markers <- head(markers[[x]], 100)
+    write.csv(top_markers, here("outs", age, "markers_k20_02", paste0("top_markers_", x, "k20_02.csv")), quote = FALSE)
+    }
+  )
 }
-# select cluster 10
-markers_10 <- markers[["10"]]
-top_markers <- head(markers_10, 50)
-write.csv(top_markers, here("outs", age, "top_markers_10k20_01.csv"), quote = FALSE)
 ```
 
 ## Rename the Clusters with assigned Cell Types
