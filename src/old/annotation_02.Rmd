@@ -484,8 +484,6 @@ clustering as follows:
 
 22 Cldn5-Astrocyte-Plp1
 
-In one line:
-"Neuron","Endothelial-Pericytes","Endothelial-Pericytes ","Immune-Monocytes","Astrocyte-Oligo","Immune-Microglia-Macrophages","Endothelial-Pericytes","Immune","ChP-Epithelial","OPC","Astrocyte","Oligo","Astrocyte","Astrocyte","Oligo","Immune","Immune","Neuron","Immune-BAM","Pvalb-Astrocyte","Immune","Cldn5-Astrocyte-Plp1"
 
 ```{r}
 plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_hue()
