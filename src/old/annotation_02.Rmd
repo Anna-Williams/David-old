@@ -170,11 +170,7 @@ plotExpression(sce, features=c("Ttr", "Kcnj13", "Krt18"),
 
 <details>
 
-<summary>
-
-Click to expand the Astrocytes marker plots
-
-</summary>
+<summary> Click to expand the Astrocytes marker plots </summary>
 
 ```{r 3lines-4-col-feature-plots, fig.height=7, fig.width=9, cache=TRUE}
 # Astrocytes
@@ -455,50 +451,6 @@ if(!file.exists(here("outs", age, "markers_k20_02", "markers_k20_02.RDS"))){
 For this first annotation we will rename the levels from the k=20
 clustering as follows:
 
-1 Neuron, This splits at k10
-
-2 Endothelial-Pericytes
-
-3 Endothelial-Pericytes, with some RELN+, should I go higher resolution?... 
-
-4 Immune-Monocytes
-
-5 Astrocyte-Oligo
-
-6 Immune-Microglia-Macrophages. They could be distinguished at higher resolution
-
-7 Endothelial-Pericytes
-
-8 Immune
-
-9 ChP-Epithelial
-
-10 OPC
-
-11 Astrocyte
-
-12 Oligo
-
-13 Astrocyte
-
-14 Astrocyte
-
-15 Oligo
-
-16 Immune
-
-17 Immune
-
-18 Neuron
-
-19 Immune-BAM
-
-20 Pvalb-Astrocyte
-
-21 Immune
-
-22 Cldn5-Astrocyte-Plp1
-
 
 ```{r}
 plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_hue()
@@ -508,19 +460,15 @@ plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_
 if (!file.exists(here("processed", age, "sce_anno_02.RDS"))) {
 sce$celltype <- sce$cluster_k20 
 # add the celltypes as described above in the correct order to replace the levels.
-levels(sce$celltype) <- c("Neuron","Endothelial-Pericytes","Endothelial-Pericytes","Immune-Monocytes","Astrocyte-Oligo","Immune-Microglia-Macrophages","Endothelial-Pericytes","Immune","ChP-Epithelial","OPC","Astrocyte","Oligo","Astrocyte","Astrocyte","Oligo","Immune","Immune","Neuron","Immune-BAM","Astrocyte-Pvalb","Immune","Astrocyte-Plp1-Cldn5")
+levels(sce$celltype) <- c("Neuron","Endothelial-Pericytes","Endothelial","Immune_neutrophils_monocytes","Astrocyte-Oligo","Microglia","Mural_cells","Immune_lymphocytes","ChP-Epithelial","OPC","Astrocyte","Oligo","Astrocyte","Astrocyte","Oligo","Immune_dendritic_cells","Microglia","Neuron","Immune-BAM","Ependymocytes","Microglia","Olfactory_ensheathing_glia")
 # and the clusters named to keep the resolution
-sce$cluster_k20_named <- sce$cluster_k20 
-levels(sce$cluster_k20_named) <- c("Neuron_1","Endothelial-Pericytes_1","Endothelial-Pericytes_2","Immune-Monocytes","Astrocyte-Oligo","Immune-Microglia-Macrophages","Endothelial-Pericytes_3","Immune_1","ChP-Epithelial","OPC","Astrocyte_1","Oligo_2","Astrocyte_2","Astrocyte_3","Oligo_1","Immune_2","Immune_3","Neuron_2","Immune-BAM","Astrocyte-Pvalb","Immune_4","Astrocyte-Plp1-Cldn5")
+sce$clusters_named <- sce$cluster_k20 
+levels(sce$clusters_named) <- c("Neuron_1", "Endothelial", "Endothelia_fenestrated", "Immune_neutrophils_monocytes", "Astro-Oligo", "Microglia", "Mural_cells", "Immune_lymphocytes", "ChP-epithelial", "OPC", "Astrocyte_1", "Oligo_1", "Astrocyte_2", "Astrocyte_3", "Oligo_2", "Immune_dendritic_cells", "Microglia", "Neuron_2", "Immune-BAM", "Ependymocytes", "Microglia", "Olfactory_ensheathing_glia")
  saveRDS(sce, here("processed", age, "sce_anno_02.RDS"))
 }
-plotTSNE(sce, colour_by = "celltype", text_by = "cluster_k20_named", text_size = 3) + scale_color_hue()
+plotTSNE(sce, colour_by = "clusters_named", text_by = "clusters_named", text_size = 3) + scale_color_hue()
 ```
 
-
-```{r eval=FALSE, include=FALSE}
-plotReducedDimRepel(sce, dimred = "TSNE", colour_by = "celltype", text_by = "cluster_k20_named", text_size = 3) + scale_color_hue()
-```
 ## Session Info
 
 <details>
