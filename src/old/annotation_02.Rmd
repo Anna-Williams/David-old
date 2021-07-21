@@ -403,18 +403,17 @@ wrap_plots(list_plots) +  plot_annotation(title =  "Ependymal")
 ## Top markers and differential expression
 
 In order to help with the identification of we pull out the
-most expressed genes for each cluster. ( ignoring the mithocondrial ribosomal, apoe, malat1)
+most expressed genes for each cluster. ( ignoring the mitochondrial ribosomal genes)
 
 ```{r top_genes}
 if(!file.exists(here("outs", age, "top_genes_k20_02.tsv"))){
 # Create object where instead of cells in cols we have the clusters with counts aggregated
 summed_k20 <- aggregateAcrossCells(sce, id=colData(sce)[,c("cluster_k20")])
 
-# Delete very expressed/not informative genes such as ribosomal and mitocondrial genes
+# Delete ribosomal and mitochondrial genes
 is_ribo <- grepl("^Rp[sl]", rownames(summed_k20))
 is_mito <- grepl("^mt-", rownames(summed_k20))
-is_abundant <- rownames(summed_k20) %in% c("Malat1", "Apoe")
-keep <- !(is_ribo | is_mito|is_abundant)
+keep <- !(is_ribo | is_mito)
  summed_k20 <- summed_k20[keep,]
  
 # for each column (aggregated counts) of the object extract the top genes
