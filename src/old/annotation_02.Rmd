@@ -451,6 +451,50 @@ if(!file.exists(here("outs", age, "markers_k20_02", "markers_k20_02.RDS"))){
 For this first annotation we will rename the levels from the k=20
 clustering as follows:
 
+1 Neuron_1
+
+2 Endothelial
+
+3 Endothelia_fenestrated
+
+4 Immune_neutrophils_monocytes
+
+5 Astro-Oligo
+
+6 Microglia
+
+7 Mural_cells
+
+8 Immune_lymphocytes
+
+9 ChP-epithelial
+
+10 OPC
+
+11 Astrocyte_1
+
+12 Oligo_1
+
+13 Astrocyte_2
+
+14 Astrocyte_3
+
+15 Oligo_2
+
+16 Immune_dendritic_cells
+
+17 Microglia
+
+18 Neuron_2
+
+19 Immune-BAM
+
+20 Ependymocytes
+
+21 Microglia
+
+22 Olfactory_ensheathing_glia
+
 
 ```{r}
 plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_hue()
