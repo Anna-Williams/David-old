@@ -17,10 +17,15 @@ library(here) #reproducible paths
 library(scater) #feature plots
 library(patchwork) # agregate plots
 library(scran) # for findmarkers
+library(pals) # for palettes with large n #kelly()22, #polychrome()#36, cols25()
 ```
 
 ```{r age}
 age <- "old"
+```
+```{r pals}
+# remove the black and white from the pallete, still 20 colours left
+kelly_col <- unname(kelly()[-c(1,2)])
 ```
 
 ```{r import}
@@ -497,7 +502,7 @@ clustering as follows:
 
 
 ```{r}
-plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_hue()
+plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_manual(values = cols25())
 ```
 
 ```{r result}
@@ -510,7 +515,7 @@ sce$clusters_named <- sce$cluster_k20
 levels(sce$clusters_named) <- c("Neuron_1", "Endothelial", "Endothelia_fenestrated", "Immune_neutrophils_monocytes", "Astro-Oligo", "Microglia", "Mural_cells", "Immune_lymphocytes", "ChP-epithelial", "OPC", "Astrocyte_1", "Oligo_1", "Astrocyte_2", "Astrocyte_3", "Oligo_2", "Immune_dendritic_cells", "Microglia", "Neuron_2", "Immune-BAM", "Ependymocytes", "Microglia", "Olfactory_ensheathing_glia")
  saveRDS(sce, here("processed", age, "sce_anno_02.RDS"))
 }
-plotTSNE(sce, colour_by = "clusters_named", text_by = "clusters_named", text_size = 3) + scale_color_hue()
+plotTSNE(sce, colour_by = "clusters_named", text_by = "clusters_named", text_size = 3) + scale_color_manual(values = kelly_col)
 ```
 
 ## Session Info
