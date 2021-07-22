@@ -15,14 +15,20 @@ conf <- createConfig(sce)
 #Delete some unnecessary metadata
 conf <- delMeta(conf, meta.to.del = c( "subsets_mt_sum", "subsets_mt_detected",
                        "outlier", "ratio_detected_sum", "outlier_ratio",
-                       "discard", "sizeFactor", "total")
+                       "discard", "sizeFactor", "total", "subsets_ribo_sum",
+                       "subsets_ribo_detected", "filter_out", "original_sample_name",
+                       "dbl_exploratory")
                 )
 # Change name of some metadata
 conf <- modMetaName(conf,
-                    meta.to.mod = c("sum", "detected", "subsets_mt_percent", "celltype"),
-                    new.name = c("umi counts", "detected genes", "% mt genes", "cell type"))
+                    meta.to.mod = c("sum", "detected", "subsets_mt_percent", "subsets_ribo_percent",
+                                    "celltype"),
+                    new.name = c("umi counts", "detected genes", "% mt genes", "% ribo genes",
+                                 "cell type"))
 # 
 
-makeShinyApp(sce, conf, gene.mapping = TRUE, shiny.title = "ShinyCell app")
+makeShinyApp(sce, conf, gene.mapping = TRUE, 
+             shiny.title = "ShinyCell app",
+             default.dimred = c("TSNE1", "TSNE2"))
 
 
