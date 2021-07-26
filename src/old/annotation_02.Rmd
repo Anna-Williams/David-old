@@ -513,6 +513,17 @@ levels(sce$celltype) <- c("Neuron","Endothelial-Pericytes","Endothelial","Immune
 # and the clusters named to keep the resolution
 sce$clusters_named <- sce$cluster_k20 
 levels(sce$clusters_named) <- c("Neuron_1", "Endothelial", "Endothelia_fenestrated", "Immune_neutrophils_monocytes", "Astro-Oligo", "Microglia", "Mural_cells", "Immune_lymphocytes", "ChP-epithelial", "OPC", "Astrocyte_1", "Oligo_1", "Astrocyte_2", "Astrocyte_3", "Oligo_2", "Immune_dendritic_cells", "Microglia", "Neuron_2", "Immune-BAM", "Ependymocytes", "Microglia", "Olfactory_ensheathing_glia")
+
+# relevel to get the appropriate order in the plots
+sce$genotype <- relevel(factor(sce$genotype), "WT")
+sce$clusters_named <- 
+  factor(sce$clusters_named, 
+         levels = c("Astrocyte_1", "Astrocyte_2", "Astrocyte_3", "Astro-Oligo", "Oligo_1", "Oligo_2", "OPC", "Neuron_1", "Neuron_2", "Immune_lymphocytes", "Immune_neutrophils_monocytes", "Immune-BAM", "Microglia", "Immune_dendritic_cells",  "Endothelial", "Endothelia_fenestrated", "Mural_cells", "ChP-epithelial", "Ependymocytes", "Olfactory_ensheathing_glia"))
+
+sce$celltype <- 
+  factor(sce$celltype, 
+         levels = c("Astrocyte", "Astro-Oligo", "Oligo", "OPC", "Neuron", "Immune_lymphocytes", "Immune_neutrophils_monocytes", "Immune-BAM", "Microglia", "Immune_dendritic_cells",  "Endothelial-Pericytes", "ChP-epithelial", "Ependymocytes", "Olfactory_ensheathing_glia"))
+
  saveRDS(sce, here("processed", age, "sce_anno_02.RDS"))
 }
 plotTSNE(sce, colour_by = "clusters_named", text_by = "clusters_named", text_size = 3) + scale_color_manual(values = kelly_col)
