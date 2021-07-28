@@ -39,12 +39,10 @@ sce_ko <- sce[,sce$genotype == "KO"]
 sce_ctr <- sce[,sce$genotype == "WT"]
 # plot them side by side
 gridExtra::grid.arrange(
-plotTSNE(sce_ctr, colour_by = "clusters_named", point_size=0.5,
-         point_alpha = 0.3, text_by = "clusters_named", text_size = 3) +
+plotTSNE(sce_ctr, colour_by = "clusters_named", point_size=0.5, text_by = "clusters_named", text_size = 3) +
   scale_color_manual(values = kelly_col) +
   ggtitle("control"), 
-plotTSNE(sce_ko, colour_by = "clusters_named", point_size=0.5,
-         point_alpha = 0.3, text_by = "clusters_named", text_size = 3) +
+plotTSNE(sce_ko, colour_by = "clusters_named", point_size=0.5, text_by = "clusters_named", text_size = 3) +
   scale_color_manual(values = kelly_col) +
   ggtitle("fire mice"),
 ncol = 2
