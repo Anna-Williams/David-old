@@ -17,7 +17,7 @@ library(here) #reproducible paths
 library(scater) #feature plots
 library(patchwork) # agregate plots
 library(scran) # for findmarkers
-library(pals) # for palettes with large n #kelly()22, #polychrome()#36, cols25()
+library(pals) # for palettes with large n #kelly()22, #polychrome()#36, unname(alphabet())
 ```
 
 ```{r age}
@@ -43,7 +43,7 @@ celltypes.
 
 
 ```{r}
-plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_hue()
+plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_manual(values = unname(alphabet()))
 ```
 
 <details>
@@ -60,7 +60,7 @@ wrap_plots(list_plots) +  plot_annotation(title = "Neurons")
 
 ```{r violin-neuro, fig.height=4}
 plotExpression(sce, features=c("Snap25", "Stmn2", "Rbfox3", "Gabrb2") ,
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r 4-feature-plots-default, cache=TRUE}
@@ -73,7 +73,7 @@ wrap_plots(list_plots) +  plot_annotation(title =  "Inhibitory Neurons")
 
 ```{r violin-neuroin, fig.height=4, cache=TRUE}
 plotExpression(sce, features=c("Gad1", "Gad2", "Slc32a1", "Pvalb"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r one-line, fig.height=3, fig.width=9, cache=TRUE}
@@ -86,7 +86,7 @@ wrap_plots(list_plots) +  plot_annotation(title =  "Exitatory Neurons")
 
 ```{r violin-neuroex, fig.height=3, cache=TRUE}
 plotExpression(sce, features=c("Satb2", "Slc12a6", "Slc17a7"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r 4-plots, cache=TRUE}
@@ -98,7 +98,7 @@ wrap_plots(list_plots) +  plot_annotation(title =  "RBFO3+ Neurons")
 
 ```{r violin-neurorbfox, fig.height=4, cache=TRUE}
 plotExpression(sce, features=c("Cdh15", "Calb2", "Rbfox3", "Reln"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 </details>
@@ -126,7 +126,7 @@ plotExpression(sce, features=c( "Lamb1" ,
                                      "Col4a1", 
                                      "Fn1", 
                                      "Lama2"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r 3lines-feature-plots, fig.height=8, cache=TRUE}
@@ -151,7 +151,7 @@ plotExpression(sce, features=c( "Cldn5",
                                      "Vwf",
                                      "Flt1",
                                      "Mecom"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 </details>
@@ -168,7 +168,7 @@ wrap_plots(list_plots) +  plot_annotation(title =  "Choroid plexus epithelial ce
 
 ```{r violin-epi, fig.height=3, cache=TRUE}
 plotExpression(sce, features=c("Ttr", "Kcnj13", "Krt18"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 </details>
@@ -207,7 +207,7 @@ plotExpression(sce, features=c("Gja1",
                                     "Vim", 
                                     "Apoe", 
                                     "Fgfr3"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r 3lines-feature-plots-2, cache=TRUE, fig.height=9, fig.width=9}
@@ -257,7 +257,7 @@ plotExpression(sce, features=c( "Cd74",
                                      "P2ry12",
                                      "C1qc",
                                      "C1qa"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r  3-in-one-line, fig.height=4, cache=TRUE}
@@ -269,7 +269,7 @@ wrap_plots(list_plots) +  plot_annotation(title = "Border associated macrophages
 
 ```{r violin-bam, fig.height=3, cache=TRUE}
 plotExpression(sce, features=c( "Mrc1", "Ms4a7", "Apoe"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r  two-lines, fig.height=8, cache=TRUE}
@@ -300,7 +300,7 @@ plotExpression(sce, features=c(
   "Klrb1c", "Cd209a", 
   # all immune cells (CD45)
   "Ptprc"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r fig.height=4}
@@ -323,7 +323,7 @@ plotExpression(sce, features=c(
   "S100a9",
   #neutrophils
   "Ly6g", "Camp"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 </details>
@@ -358,7 +358,7 @@ plotExpression(sce, features=c("Pdgfra",
                                     "Pcdh15", 
                                     "Ptgds",
                                     "Bcan"),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r big-feature-plots5, cache=TRUE, fig.height=8}
@@ -383,7 +383,7 @@ plotExpression(sce, features=c("Plp1",
                                     "Mobp", 
                                     "Mbp", 
                                     "Sox10" ),
-    x="cluster_k20", colour_by = "cluster_k20", ncol=1) + scale_color_hue()
+    x="cluster_k20", colour_by = "cluster_k20", ncol=1) +  scale_color_manual(values = unname(alphabet()))
 ```
 
 </details>
@@ -453,80 +453,136 @@ if(!file.exists(here("outs", age, "markers_k20_02", "markers_k20_02.RDS"))){
 
 ## Rename the Clusters with assigned Cell Types
 
-For this first annotation we will rename the levels from the k=20
-clustering as follows:
+With the help of the known markers plotted above, the DE between clusters and the top 
+expressed genes the celltype identity of every cluster has benn identified. 
 
-1 Neuron_1
+Renaming the clusters accordingly:
+
+1 mNeurons
 
 2 Endothelial
 
-3 Endothelia_fenestrated
+3 fEndothelia
 
-4 Immune_neutrophils_monocytes
+4 Gran & Mono
 
-5 Astro-Oligo
+5 OligoAstro
 
 6 Microglia
 
 7 Mural_cells
 
-8 Immune_lymphocytes
+8 Lymphocytes
 
-9 ChP-epithelial
+9 ChP_epithelial
 
-10 OPC
+10 OPCs
 
 11 Astrocyte_1
 
-12 Oligo_1
+12 Oligo_2
 
 13 Astrocyte_2
 
 14 Astrocyte_3
 
-15 Oligo_2
+15 Oligo_1
 
-16 Immune_dendritic_cells
+16 DCs
 
 17 Microglia
 
-18 Neuron_2
+18 iNeuron & NRPs
 
-19 Immune-BAM
+19 BAMs
 
 20 Ependymocytes
 
 21 Microglia
 
-22 Olfactory_ensheathing_glia
+22 OEG
 
 
 ```{r}
-plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_manual(values = cols25())
+plotTSNE(sce, colour_by = "cluster_k20", text_by = "cluster_k20") + scale_color_manual(values = unname(alphabet()))
 ```
 
 ```{r result}
 if (!file.exists(here("processed", age, "sce_anno_02.RDS"))) {
 sce$celltype <- sce$cluster_k20 
 # add the celltypes as described above in the correct order to replace the levels.
-levels(sce$celltype) <- c("Neuron","Endothelial-Pericytes","Endothelial","Immune_neutrophils_monocytes","Astrocyte-Oligo","Microglia","Mural_cells","Immune_lymphocytes","ChP-Epithelial","OPC","Astrocyte","Oligo","Astrocyte","Astrocyte","Oligo","Immune_dendritic_cells","Microglia","Neuron","Immune-BAM","Ependymocytes","Microglia","Olfactory_ensheathing_glia")
+levels(sce$celltype) <- c("Neuron","Endothelial","Endothelial","Gran & Mono","OligoAstro","Microglia","Mural_cells","Lymphocytes","ChP_epithelial","OPCs","Astrocyte","Oligo","Astrocyte","Astrocyte","Oligo","DCs","Microglia","Neuron","BAMs","Ependymocytes","Microglia","OEG")
 # and the clusters named to keep the resolution
-sce$clusters_named <- sce$cluster_k20 
-levels(sce$clusters_named) <- c("Neuron_1", "Endothelial", "Endothelia_fenestrated", "Immune_neutrophils_monocytes", "Astro-Oligo", "Microglia", "Mural_cells", "Immune_lymphocytes", "ChP-epithelial", "OPC", "Astrocyte_1", "Oligo_1", "Astrocyte_2", "Astrocyte_3", "Oligo_2", "Immune_dendritic_cells", "Microglia", "Neuron_2", "Immune-BAM", "Ependymocytes", "Microglia", "Olfactory_ensheathing_glia")
+sce$clusters_named <- sce$cluster_k20
+levels(sce$clusters_named) <- c("mNeurons", "Endothelial", "fEndothelia", "Gran & Mono", "OligoAstro", "Microglia", "Mural_cells", "Lymphocytes", "ChP_epithelial", "OPCs", "Astrocyte_1", "Oligo_2", "Astrocyte_2", "Astrocyte_3", "Oligo_1", "DCs", "Microglia", "iNeurons & NRPs", "BAMs", "Ependymocytes", "Microglia", "OEG")
 
 # relevel to get the appropriate order in the plots
 sce$genotype <- relevel(factor(sce$genotype), "WT")
 sce$clusters_named <- 
   factor(sce$clusters_named, 
-         levels = c("Astrocyte_1", "Astrocyte_2", "Astrocyte_3", "Astro-Oligo", "Oligo_1", "Oligo_2", "OPC", "Neuron_1", "Neuron_2", "Immune_lymphocytes", "Immune_neutrophils_monocytes", "Immune-BAM", "Microglia", "Immune_dendritic_cells",  "Endothelial", "Endothelia_fenestrated", "Mural_cells", "ChP-epithelial", "Ependymocytes", "Olfactory_ensheathing_glia"))
+         levels = c("Astrocyte_1", "Astrocyte_2", "Astrocyte_3", "OligoAstro", "Oligo_1", "Oligo_2", "OPCs", "mNeurons", "iNeurons & NRPs", "Lymphocytes", "Gran & Mono", "BAMs", "Microglia", "DCs",  "Endothelial", "fEndothelia", "Mural_cells", "ChP_epithelial", "Ependymocytes", "OEG"))
 
 sce$celltype <- 
   factor(sce$celltype, 
-         levels = c("Astrocyte", "Astro-Oligo", "Oligo", "OPC", "Neuron", "Immune_lymphocytes", "Immune_neutrophils_monocytes", "Immune-BAM", "Microglia", "Immune_dendritic_cells",  "Endothelial-Pericytes", "ChP-epithelial", "Ependymocytes", "Olfactory_ensheathing_glia"))
+         levels = c("Astrocyte", "OligoAstro", "Oligo", "OPCs", "Neuron", "Lymphocytes", "Gran & Mono", "BAMs", "Microglia", "DCs",  "Endothelial", "Mural_cells", "ChP_epithelial", "Ependymocytes", "OEG"))
 
  saveRDS(sce, here("processed", age, "sce_anno_02.RDS"))
 }
 plotTSNE(sce, colour_by = "clusters_named", text_by = "clusters_named", text_size = 3) + scale_color_manual(values = kelly_col)
+```
+
+## Marker plots
+
+Exploring the shiny app and the DE between clusters specific markers for each one of the subtypes is identified.
+
+```{r final-violin, fig.height=25, fig.width=9, cache=TRUE}
+plotExpression(sce, features=c(# astrocytes
+                                 "Aqp4",
+                                 #astro1
+                                 "Pantr1",
+                                # astro 2
+                                "Agt",
+                                # astro 3
+                                "Dclk1",
+                                # oligos
+                                "Mog",
+                                #oligo1
+                                "Ptgds",
+                                #oligo2
+                                "S100b",
+                                #opcs
+                                "Pdgfra",
+                                #neurons
+                                "Syt1",
+                                #ineurons
+                                "Sox11",
+                                #lympho
+                                "Ptprcap",
+                                # granmono
+                                "S100a9",
+                                # Bams
+                                "Mrc1",
+                                # Microglia
+                                "P2ry12",
+                                # DCs
+                                "Flt3",
+                                # endothelial
+                                "Pecam1",
+                                # fendothelial
+                                "Plvap",
+                                # mural cells
+                                "Vtn",
+                                #chp
+                                "Ttr",
+                                #ependymocytes
+                                "Ccdc153",
+                                #oeg
+                                "Npy"
+                                
+                                ),
+    x="clusters_named", colour_by = "clusters_named", ncol=1, scales = "free_y") +  
+  scale_color_manual(values = kelly_col) + theme(axis.text.x = element_text(angle = 45, hjust=1, vjust = 1)) 
+
 ```
 
 ## Session Info
