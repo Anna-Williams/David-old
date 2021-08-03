@@ -126,7 +126,7 @@ plot <- plotExpression(logNormCounts(sce),
     x="genotype", colour_by="genotype",
     other_fields="clusters_named") +
     facet_wrap(~clusters_named) +
-    scale_color_manual(values = c("#888888", "#E25822")) +
+    scale_color_manual(values = c("#666666", "#E25822")) +
     ggtitle(gene)
 print(plot)
 dev.off()
