@@ -16,12 +16,8 @@ library(scater) # for aggregate counts
 library(edgeR) #for De
 library(here) # reproducible paths
 ```
-```{r age, eval=T}
-age <- "old"
-```
-
-
 ```{r load}
+age <- "old"
 sce <- readRDS(here("processed", age, "sce_anno_02.RDS"))
 ```
 
