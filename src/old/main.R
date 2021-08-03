@@ -25,7 +25,12 @@ rmarkdown::render(here("src", age, "feature_selection_dimred_02.Rmd"))
 rmarkdown::render(here("src", age, "clustering_02.Rmd"))
 # redo annotation
 rmarkdown::render(here("src", age, "annotation_02.Rmd"))
-# differential expression
-rmarkdown::render(here("src", age, "DE_WT_KO.Rmd"))
+# differential expression at celltype level
+rmarkdown::render(here("src", age, "DE_WT_KO_celltype.Rmd"))
+# differential expression at clusters k20 level
+rmarkdown::render(here("src", age, "DE_WT_KO_k20.Rmd"))
+# differential abundance btw clusters
+rmarkdown::render(here("src", age, "DA_WT_KO_k20.Rmd"))
 # shiny app
 source(here("src", age, "generate_shiny.R"))
+
