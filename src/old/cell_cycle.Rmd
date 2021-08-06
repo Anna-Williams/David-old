@@ -60,6 +60,27 @@ lapply(levels(sce$clusters_named),
             dev.off()
              }
             ) 
+
+pdf(here("outs", age, "Cyclins", "all_clusters_named.pdf"))
+plotHeatmap(sce,
+            #columns =sce$clusters_named == cluster_named,
+            order_columns_by=c("clusters_named"),
+            colour_columns_by = c("clusters_named"),
+            cluster_rows=FALSE, 
+            cluster_cols = FALSE,
+            features= sort(ccn_genes)
+            )
+dev.off()
+
+pdf(here("outs", age, "Cyclins", "all_genotype.pdf"))
+plotHeatmap(sce,
+            #columns =sce$clusters_named == cluster_named,
+            order_columns_by=c("genotype"),
+            colour_columns_by = c("genotype"),
+            cluster_rows=FALSE, 
+            cluster_cols = FALSE,
+            features= sort(ccn_genes))
+dev.off()
 ```
 
 ## Use reference profile to perform cell cycle assignment
@@ -98,7 +119,7 @@ cycle_cells <- SingleR(sce_mat, ref = sce_ref, labels = sce_ref$phase, de.method
 # create a table with the frecuencies genotype-cellcycle for each one of the clusters
 freq <- table(cycle=cycle_cells$pruned.labels,
               genotype=sce$genotype,
-              cluster_named=sce$clusters_named)
+              cluster_named=sce$celltype)
 
 # save to file
 freq_flat <- stats:::format.ftable(ftable(freq, col.vars = c("genotype"), row.vars=c("cluster_named", "cycle")), quote=FALSE)
@@ -109,7 +130,14 @@ outs/`r age`/cellcycle.csv contains a table with the number of cells found in ea
 
 ## Run statistical test
 
-In each one of our clusters we want to compare if the distribution of cells across the G1, G2M and S phases differs between the WT and the KO. Due to the presence of small counts (expected frequencies \<5) we use the fisher's exact test, as advised in [(Hae-Young Kim et. al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5426219/)
+We can compare if there is a significant difference in the distribution of cells across the G1, G2M and S phases between the WT and the KO.
+
+```{r}
+freq_WT.KO_G1.G2M.S <- table(cycle=cycle_cells$pruned.labels, genotype=sce$genotype)
+chisq.test(freq_WT.KO_G1.G2M.S)
+```
+
+We can also perform the same test in each one of our cell types. Due to the presence of small counts (expected frequencies \<5) we use the fisher's exact test, as advised in [(Hae-Young Kim et. al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5426219/)
 
 ```{r test}
 # Margin is 3 as I want to apply the test to each one of the clusters (3rd dimension)
