@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 #### set-up
-```{r}
+```{r warning=FALSE}
 library(scRNAseq) # reference dataset
 #library(scran) # for scDE
 library(scater) # to manipulate sce
@@ -18,6 +18,7 @@ library(here) # reproducible paths
 library(org.Mm.eg.db) # annotation cycling genes
 library(SingleR) # to mapp cellcycle
 library(DescTools) # save multidemensional arrays
+library(patchwork) # agregate plots
 ```
 ```{r age, eval=T}
 age <- "old"
@@ -30,17 +31,33 @@ sce <- readRDS(here("processed", age, "sce_anno_02.RDS"))
 ## Visualise cyclins
 
 The cyclins control progression through the cell cycle and have well-characterized patterns of expression across cell cycle phases.
-```{r fig.height=8}
-ccn_genes <- rownames(sce)[grep("^Ccn[abde][0-9]$", rownames(sce))]
 
-plotHeatmap(sce,
-            columns =sce$genotype == "WT",
-            order_columns_by=c("genotype","clusters_named"),
-            colour_columns_by = c("genotype","clusters_named"),
+cyclin A: activates DNA replication in S phase
+
+cyclin B: assembly of mitotic spindle to preparate for mitosis
+
+Cyclin D: move from G0 to G1 and S
+
+Cyclin E: prepares for DNAreplication just before S phase.
+
+```{r fig.height=7}
+ccn_genes <- rownames(sce)[grep("^Ccn[abde][0-9]$", rownames(sce))]
+list_plots <- lapply(levels(sce$clusters_named),
+            function(cluster_named){
+             plotHeatmap(sce,
+            columns =sce$clusters_named == cluster_named,
+            order_columns_by=c("genotype"),
+            colour_columns_by = c("genotype"),
             cluster_rows=FALSE, 
             cluster_cols = FALSE,
-            features=ccn_genes) + facet_wrap(~ clusters_named)
+            features= sort(ccn_genes),
+            main = cluster_named)}
+            ) 
+# failing to create grid, investigate this further if you want https://stackoverflow.com/questions/39590849/using-a-pheatmap-in-arrangegrob
+#gridExtra::arrangeGrob(grobs = list_plots, ncol=5, nrow = 4)
+
 ```
+
 
 
 ## Use reference profile to perform cell cycle assignment
