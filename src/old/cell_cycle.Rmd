@@ -40,10 +40,13 @@ Cyclin D: move from G0 to G1 and S
 
 Cyclin E: prepares for DNAreplication just before S phase.
 
-```{r fig.height=7}
+The plots are saved in "outs/`r age`/Cyclins"
+
+```{r fig.height=7, include=FALSE}
 ccn_genes <- rownames(sce)[grep("^Ccn[abde][0-9]$", rownames(sce))]
-list_plots <- lapply(levels(sce$clusters_named),
+lapply(levels(sce$clusters_named),
             function(cluster_named){
+              pdf(here("outs", age, "Cyclins", paste0(cluster_named,".pdf")))
              plotHeatmap(sce,
             columns =sce$clusters_named == cluster_named,
             order_columns_by=c("genotype"),
@@ -51,11 +54,10 @@ list_plots <- lapply(levels(sce$clusters_named),
             cluster_rows=FALSE, 
             cluster_cols = FALSE,
             features= sort(ccn_genes),
-            main = cluster_named)}
+            main = cluster_named)
+            dev.off()
+             }
             ) 
-# failing to create grid, investigate this further if you want https://stackoverflow.com/questions/39590849/using-a-pheatmap-in-arrangegrob
-#gridExtra::arrangeGrob(grobs = list_plots, ncol=5, nrow = 4)
-
 ```
 
 
