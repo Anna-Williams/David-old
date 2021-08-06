@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 #### set-up
+
 ```{r warning=FALSE}
 library(scRNAseq) # reference dataset
 #library(scran) # for scDE
@@ -20,14 +21,15 @@ library(SingleR) # to mapp cellcycle
 library(DescTools) # save multidemensional arrays
 library(patchwork) # agregate plots
 ```
+
 ```{r age, eval=T}
 age <- "old"
 ```
 
-
 ```{r load}
 sce <- readRDS(here("processed", age, "sce_anno_02.RDS"))
 ```
+
 ## Visualise cyclins
 
 The cyclins control progression through the cell cycle and have well-characterized patterns of expression across cell cycle phases.
@@ -60,13 +62,11 @@ lapply(levels(sce$clusters_named),
             ) 
 ```
 
-
-
 ## Use reference profile to perform cell cycle assignment
 
-The key assumption is that the cell cycle effect is orthogonal to other aspects of biological heterogeneity like cell type. This justifies the use of a reference involving cell types that are different from the cells in our dataset, provided that the cell cycle transcriptional program is conserved across datasets (Bertoli, Skotheim, and Bruin 2013; Conboy et al. 2007).
-Non-orthogonality can introduce biases where, one cell type is consistently misclassified as being in a particular phase because it happens to be more similar to that phase’s profile in the reference. 
-A healthy dose of skepticism is required when interpreting these assignments. Our hope is that any systematic assignment error is consistent across clusters and conditions such that they cancel out in comparisons of phase frequencies.
+The key assumption is that the cell cycle effect is orthogonal to other aspects of biological heterogeneity like cell type. This justifies the use of a reference involving cell types that are different from the cells in our dataset, provided that the cell cycle transcriptional program is conserved across datasets (Bertoli, Skotheim, and Bruin 2013; Conboy et al. 2007). Non-orthogonality can introduce biases where, one cell type is consistently misclassified as being in a particular phase because it happens to be more similar to that phase's profile in the reference. A healthy dose of skepticism is required when interpreting these assignments. Our hope is that any systematic assignment error is consistent across clusters and conditions such that they cancel out in comparisons of phase frequencies.
+
+-   Filter only the genes related with cell cycle (<GO:0007049>) from the reference dataset
 
 ```{r get-ref-profile}
 # import and lognormalise
@@ -80,6 +80,8 @@ cycle_genes <- select(org.Mm.eg.db,
                            )[, "ENSEMBL"]
 ```
 
+-   Map cells from our dataset to reference
+
 ```{r singleR}
 # from sce create matrix with only the logcounts and back with Ensembl notation
 sce_mat <- logcounts(sce)
@@ -88,6 +90,8 @@ rownames(sce_mat) <- rowData(sce)$ID
 # run assignments
 cycle_cells <- SingleR(sce_mat, ref = sce_ref, labels = sce_ref$phase, de.method = "wilcox", restrict = cycle_genes)
 ```
+
+-   Calculate number of cells in each phase for each one of the clusters and condition.
 
 ```{r freqs}
 # Extract frequencies and save to file.
@@ -103,16 +107,12 @@ write.table(freq_flat, sep=",", file = here("outs", age, "cellcycle.csv"),row.na
 
 outs/`r age`/cellcycle.csv contains a table with the number of cells found in each phase, for each one of the clusters, divided by WT and KO.
 
-
 ## Run statistical test
 
-In each one of our clusters we want to compare if the distribution of cells across the G1, G2M and S phases differs between the WT and the KO. Due to the presence of small counts (expected frequencies <5) we use the fisher's exact test, as advised in [(Hae-Young Kim et. al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5426219/)
-
+In each one of our clusters we want to compare if the distribution of cells across the G1, G2M and S phases differs between the WT and the KO. Due to the presence of small counts (expected frequencies \<5) we use the fisher's exact test, as advised in [(Hae-Young Kim et. al.)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5426219/)
 
 ```{r test}
 # Margin is 3 as I want to apply the test to each one of the clusters (3rd dimension)
 apply(freq, 3, function(freq_WT.KO_G1.G2M.S){fisher.test(freq_WT.KO_G1.G2M.S)})
 
 ```
-
-
