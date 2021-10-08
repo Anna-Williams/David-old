@@ -3,19 +3,15 @@
 ## set up ---
 
 library(here) #reproducible paths
-library(scater) #feature plots
-library(patchwork) # agregate plots
-library(pals) # for palettes with large n #kelly()22, #polychrome()#36, cols25()
+library(ggplot2) # plot
 
 # project
 age <- "old"
 
-# colours
-# remove the black and white from the pallete, still 20 colours left
-kelly_col <- unname(kelly()[-c(1,2)])
 
 ## import and transform data ---
-# this is the output from edgeR
+
+# this is the output from edgeR for sc
 # a list with the DE results, each element named as one of the clusters and 
 # contain a DFrame with the DE for that cluster
 de_results <- readRDS(here("processed", age, "DE_k20_de_results.RDS"))
