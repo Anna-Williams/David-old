@@ -60,7 +60,7 @@ We need to add the KNN graph to the Milo object. This is stored in the `graph` s
 For graph building you need to define a few parameters:
 
 - `d`: the number of reduced dimensions to use for KNN refinement. We recommend using the same $d$ used for KNN graph building. In our case 26 dimensions (see feature_selection_dimred_02 script)
-- `k`: this  affects the power of DA testing, since we need to have enough cells from each sample represented in a neighbourhood to estimate the variance between replicates. On the other side, increasing $k$ too much might lead to over-smoothing. We suggest to start by using the same value for $k$ used for KNN graph building for clustering and UMAP visualization. In our case k20.  We will later use some heuristics to evaluate whether the value of $k$ should be increased.
+- `k`: this  affects the power of DA testing, since we need to have enough cells from each sample represented in a neighbourhood to estimate the variance between replicates. On the other side, increasing $k$ too much might lead to over-smoothing. We suggest to start by using the same value for $k$ used for KNN graph building for clustering and UMAP visualization. In our case k10, that is the clustering resolution that shows the small cluster, more abundant in KO, as a separate cluster.
 
 ```{r}
 # k modified after checking neighbourhoods
@@ -203,6 +203,7 @@ We might also be interested in visualizing wheather DA is particularly evident i
 ```{r}
 da_results <- annotateNhoods(milo, da_results, coldata_col = "cluster_oligo_k10")
 da_results <- annotateNhoods(milo, da_results, coldata_col = "celltype")
+da_results <- annotateNhoods(milo, da_results, coldata_col = "clusters_named")
 head(da_results)
 ```
 
@@ -212,7 +213,7 @@ While neighbourhoods tend to be homogeneous, we can define a threshold for `clus
 ggplot(da_results, aes(cluster_oligo_k10_fraction)) + geom_histogram(bins=50)
 ```
 ```{r}
-da_results$cluster_oligo_k10 <- ifelse(da_results$cluster_oligo_k10_fraction < 0.5, "Mixed", da_results$cluster_oligo_k10)
+da_results$cluster_oligo_k10 <- ifelse(da_results$cluster_oligo_k10_fraction < 0.6, "Mixed", da_results$cluster_oligo_k10)
 ```
 
 Now we can visualize the distribution of DA Fold Changes in different cell types or clusters
@@ -223,7 +224,17 @@ plotReducedDim(milo, dimred = "TSNE", colour_by="cluster_oligo_k10", text_by = "
   guides(fill="none")
 plotDAbeeswarm(da_results, group.by = "cluster_oligo_k10") + scale_colour_distiller(direction = -1, palette = "RdBu")
 plotDAbeeswarm(da_results, group.by = "celltype") + scale_colour_distiller(direction = -1, palette = "RdBu")
+plotDAbeeswarm(da_results, group.by = "clusters_named") + scale_colour_distiller(direction = -1, palette = "RdBu")
 ```
+
+
+The results are saved and superposed to the results with all the other cell types.
+
+```{r}
+saveRDS(da_results, here("processed",project, "da_results_oligos.rds"))
+```
+
+
 
 === from bellow, not modified tutorial
 
@@ -261,176 +272,176 @@ plotDAbeeswarm(da_results, group.by = "celltype") + scale_colour_distiller(direc
 <!--                       ) -->
 <!-- ``` -->
 
-# Finding markers of DA populations
+<!-- # Finding markers of DA populations -->
 
-Once you have found your neighbourhoods showindg significant DA between conditions, you might want to find gene signatures specific to the cells in those neighbourhoods. The function `findNhoodGroupMarkers` runs a one-VS-all differential gene expression test to identify marker genes for a group of neighbourhoods of interest. Before running this function you will need to define your neighbourhood groups depending on your biological question, that need to be stored as a `NhoodGroup` column in the `da_results` data.frame.
+<!-- Once you have found your neighbourhoods showindg significant DA between conditions, you might want to find gene signatures specific to the cells in those neighbourhoods. The function `findNhoodGroupMarkers` runs a one-VS-all differential gene expression test to identify marker genes for a group of neighbourhoods of interest. Before running this function you will need to define your neighbourhood groups depending on your biological question, that need to be stored as a `NhoodGroup` column in the `da_results` data.frame. -->
 
-### Custom grouping
+<!-- ### Custom grouping -->
 
-In a case where all the DA neighbourhoods seem to belong to the same region of the graph, you might just want to test the significant DA neighbourhoods with the same logFC against all the rest (N.B. for illustration purposes, here I am testing on a randomly selected set of 10 genes).
+<!-- In a case where all the DA neighbourhoods seem to belong to the same region of the graph, you might just want to test the significant DA neighbourhoods with the same logFC against all the rest (N.B. for illustration purposes, here I am testing on a randomly selected set of 10 genes). -->
 
-```{r}
-## Add log normalized count to Milo object
-milo <- logNormCounts(milo)
-da_results$NhoodGroup <- as.numeric(da_results$SpatialFDR < 0.1 & da_results$logFC < 0)
-da_nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = rownames(milo)[1:10])
-head(da_nhood_markers)
-```
-
-For this analysis we recommend aggregating the neighbourhood expression profiles by experimental samples (the same used for DA testing), by setting `aggregate.samples=TRUE`. This way single-cells will not be considered as "replicates" during DGE testing, and dispersion will be estimated between true biological replicates. Like so:
-
-```{r}
-da_nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = rownames(milo)[1:10],
-                                          aggregate.samples = TRUE, sample_col = "sample")
-head(da_nhood_markers)
-```
-
-(Notice the difference in p values)
-
-## Automatic grouping of neighbourhoods
-
-In many cases, such as this example, DA neighbourhoods are found in different areas of the KNN graph, and grouping together all significant DA populations might not be ideal, as they might include cells of very different celltypes. For this kind of scenario, we have implemented a neighbourhood function that uses community detection to partition neighbourhoods into groups on the basis of (1) the number of shared cells between 2 neighbourhoods; (2) the direction of fold-change for DA neighbourhoods; (3) the difference in fold change.
-
-```{r}
-## Run buildNhoodGraph to store nhood adjacency matrix
-milo <- buildNhoodGraph(milo)
-## Find groups
-da_results <- groupNhoods(milo, da_results, max.lfc.delta = 10)
-head(da_results)
-```
-
-Let's have a look at the detected groups
-
-```{r, fig.height=7, fig.width=7, dev="jpeg"}
-plotNhoodGroups(milo, da_results, layout="umap")
-```
-
-```{r, dev="jpeg"}
-plotDAbeeswarm(da_results, "NhoodGroup")
-```
-
-We can see that some groups are made up of single neighbourhoods.
-
-<!-- ```{r, fig.height=7, fig.width=7} -->
-<!-- singletons <- names(which(table(da_results$NhoodGroup)==1)) -->
-<!-- plotNhoodGroups(milo, da_results, layout="umap", show_groups = singletons,  size_range=c(0.2,4))  -->
+<!-- ```{r} -->
+<!-- ## Add log normalized count to Milo object -->
+<!-- milo <- logNormCounts(milo) -->
+<!-- da_results$NhoodGroup <- as.numeric(da_results$SpatialFDR < 0.1 & da_results$logFC < 0) -->
+<!-- da_nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = rownames(milo)[1:10]) -->
+<!-- head(da_nhood_markers) -->
 <!-- ``` -->
 
-We can easily check how changing the grouping parameters changes the groups we obtain, starting with the LFC delta by plotting with different values of `max.lfc.delta`
-(not executed here).
+<!-- For this analysis we recommend aggregating the neighbourhood expression profiles by experimental samples (the same used for DA testing), by setting `aggregate.samples=TRUE`. This way single-cells will not be considered as "replicates" during DGE testing, and dispersion will be estimated between true biological replicates. Like so: -->
 
-```{r, dev="jpeg"}
-# code not run - uncomment to run.
-# plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 1) , group.by = "NhoodGroup") + ggtitle("max LFC delta=1")
-# plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 2)   , group.by = "NhoodGroup") + ggtitle("max LFC delta=2")
-# plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 3)   , group.by = "NhoodGroup") + ggtitle("max LFC delta=3")
-```
+<!-- ```{r} -->
+<!-- da_nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = rownames(milo)[1:10], -->
+<!--                                           aggregate.samples = TRUE, sample_col = "sample") -->
+<!-- head(da_nhood_markers) -->
+<!-- ``` -->
 
-...and we can do the same for the minimum overlap between neighbourhoods... (code not executed).
+<!-- (Notice the difference in p values) -->
 
-```{r, dev="jpeg"}
-# code not run - uncomment to run.
-# plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 5, overlap=1) , group.by = "NhoodGroup") + ggtitle("overlap=5")
-# plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 5, overlap=5)   , group.by = "NhoodGroup") + ggtitle("overlap=10")
-# plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 5, overlap=10)   , group.by = "NhoodGroup") + ggtitle("overlap=20")
-```
+<!-- ## Automatic grouping of neighbourhoods -->
 
-In these examples we settle for `overlap=5` and `max.lfc.delta=5`, as we need at least 2 neighbourhoods assigned to each group.
+<!-- In many cases, such as this example, DA neighbourhoods are found in different areas of the KNN graph, and grouping together all significant DA populations might not be ideal, as they might include cells of very different celltypes. For this kind of scenario, we have implemented a neighbourhood function that uses community detection to partition neighbourhoods into groups on the basis of (1) the number of shared cells between 2 neighbourhoods; (2) the direction of fold-change for DA neighbourhoods; (3) the difference in fold change. -->
 
-```{r, dev="jpeg"}
-set.seed(42)
-da_results <- groupNhoods(milo, da_results, max.lfc.delta = 5, overlap=5)
-plotNhoodGroups(milo, da_results, layout="umap")
-plotDAbeeswarm(da_results, group.by = "NhoodGroup")
-```
+<!-- ```{r} -->
+<!-- ## Run buildNhoodGraph to store nhood adjacency matrix -->
+<!-- milo <- buildNhoodGraph(milo) -->
+<!-- ## Find groups -->
+<!-- da_results <- groupNhoods(milo, da_results, max.lfc.delta = 10) -->
+<!-- head(da_results) -->
+<!-- ``` -->
 
-## Finding gene signatures for neighbourhoods
+<!-- Let's have a look at the detected groups -->
 
-Once we have grouped neighbourhoods using `groupNhoods` we are now all set to identifying gene signatures between neighbourhood groups.
+<!-- ```{r, fig.height=7, fig.width=7, dev="jpeg"} -->
+<!-- plotNhoodGroups(milo, da_results, layout="umap") -->
+<!-- ``` -->
 
-Let's restrict the testing to highly variable genes in this case
+<!-- ```{r, dev="jpeg"} -->
+<!-- plotDAbeeswarm(da_results, "NhoodGroup") -->
+<!-- ``` -->
 
-```{r}
-## Exclude zero counts genes
-keep.rows <- rowSums(logcounts(milo)) != 0
-milo <- milo[keep.rows, ]
-## Find HVGs
-set.seed(101)
-dec <- modelGeneVar(milo)
-hvgs <- getTopHVGs(dec, n=2000)
-head(hvgs)
-```
+<!-- We can see that some groups are made up of single neighbourhoods. -->
 
-We run `findNhoodGroupMarkers` to test for one-vs-all differential gene expression for each neighbourhood group
+<!-- <!-- ```{r, fig.height=7, fig.width=7} --> -->
+<!-- <!-- singletons <- names(which(table(da_results$NhoodGroup)==1)) --> -->
+<!-- <!-- plotNhoodGroups(milo, da_results, layout="umap", show_groups = singletons,  size_range=c(0.2,4))  --> -->
+<!-- <!-- ``` --> -->
 
-```{r}
-set.seed(42)
-nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = hvgs,
-                                       aggregate.samples = TRUE, sample_col = "sample")
-head(nhood_markers)
-```
+<!-- We can easily check how changing the grouping parameters changes the groups we obtain, starting with the LFC delta by plotting with different values of `max.lfc.delta` -->
+<!-- (not executed here). -->
 
-Let's check out the markers for group 5 for example
+<!-- ```{r, dev="jpeg"} -->
+<!-- # code not run - uncomment to run. -->
+<!-- # plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 1) , group.by = "NhoodGroup") + ggtitle("max LFC delta=1") -->
+<!-- # plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 2)   , group.by = "NhoodGroup") + ggtitle("max LFC delta=2") -->
+<!-- # plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 3)   , group.by = "NhoodGroup") + ggtitle("max LFC delta=3") -->
+<!-- ``` -->
 
-```{r}
-gr5_markers <- nhood_markers[c("logFC_5", "adj.P.Val_5")]
-colnames(gr5_markers) <- c("logFC", "adj.P.Val")
-head(gr5_markers[order(gr5_markers$adj.P.Val), ])
-```
+<!-- ...and we can do the same for the minimum overlap between neighbourhoods... (code not executed). -->
 
-If you already know you are interested only in the markers for group 2, you might want to test just 8-VS-all using the `subset.groups` parameter:
+<!-- ```{r, dev="jpeg"} -->
+<!-- # code not run - uncomment to run. -->
+<!-- # plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 5, overlap=1) , group.by = "NhoodGroup") + ggtitle("overlap=5") -->
+<!-- # plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 5, overlap=5)   , group.by = "NhoodGroup") + ggtitle("overlap=10") -->
+<!-- # plotDAbeeswarm(groupNhoods(milo, da_results, max.lfc.delta = 5, overlap=10)   , group.by = "NhoodGroup") + ggtitle("overlap=20") -->
+<!-- ``` -->
 
-```{r}
-nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = hvgs,
-                                       aggregate.samples = TRUE, sample_col = "sample",
-                                       subset.groups = c("5")
-                                       )
-head(nhood_markers)
-```
+<!-- In these examples we settle for `overlap=5` and `max.lfc.delta=5`, as we need at least 2 neighbourhoods assigned to each group. -->
 
-You might also want to compare a subset of neighbourhoods between each other. You can specify the neighbourhoods to use for testing by setting the parameter `subset.nhoods`.
+<!-- ```{r, dev="jpeg"} -->
+<!-- set.seed(42) -->
+<!-- da_results <- groupNhoods(milo, da_results, max.lfc.delta = 5, overlap=5) -->
+<!-- plotNhoodGroups(milo, da_results, layout="umap") -->
+<!-- plotDAbeeswarm(da_results, group.by = "NhoodGroup") -->
+<!-- ``` -->
 
-For example, you might want to compare just one pair of neighbourhood groups against each other:
+<!-- ## Finding gene signatures for neighbourhoods -->
 
-```{r}
-nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = hvgs,
-                                       subset.nhoods = da_results$NhoodGroup %in% c('5','6'),
-                                       aggregate.samples = TRUE, sample_col = "sample")
-head(nhood_markers)
-```
+<!-- Once we have grouped neighbourhoods using `groupNhoods` we are now all set to identifying gene signatures between neighbourhood groups. -->
 
-or you might use `subset.nhoods` to exclude singleton neighbourhoods, or to subset to the neighbourhoods that show significant DA.
+<!-- Let's restrict the testing to highly variable genes in this case -->
 
-## Visualize detected markers
+<!-- ```{r} -->
+<!-- ## Exclude zero counts genes -->
+<!-- keep.rows <- rowSums(logcounts(milo)) != 0 -->
+<!-- milo <- milo[keep.rows, ] -->
+<!-- ## Find HVGs -->
+<!-- set.seed(101) -->
+<!-- dec <- modelGeneVar(milo) -->
+<!-- hvgs <- getTopHVGs(dec, n=2000) -->
+<!-- head(hvgs) -->
+<!-- ``` -->
 
-Lets select marker genes for group 10 at FDR 1% and log-fold-Change > 1.
+<!-- We run `findNhoodGroupMarkers` to test for one-vs-all differential gene expression for each neighbourhood group -->
 
-```{r, dev="jpeg"}
-ggplot(nhood_markers, aes(logFC_5, -log10(adj.P.Val_5 ))) +
-  geom_point(alpha=0.5, size=0.5) +
-  geom_hline(yintercept = 3)
-markers <- rownames(nhood_markers)[nhood_markers$adj.P.Val_5 < 0.01 & nhood_markers$logFC_5 > 0]
-```
+<!-- ```{r} -->
+<!-- set.seed(42) -->
+<!-- nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = hvgs, -->
+<!--                                        aggregate.samples = TRUE, sample_col = "sample") -->
+<!-- head(nhood_markers) -->
+<!-- ``` -->
 
-We can visualize the expression in neighbourhoods using `plotNhoodExpressionGroups`.
+<!-- Let's check out the markers for group 5 for example -->
 
-```{r, fig.width=12, fig.height=7, dev="jpeg"}
-set.seed(42)
-plotNhoodExpressionGroups(milo, da_results, features=intersect(rownames(milo), markers[1:10]),
-                          subset.nhoods = da_results$NhoodGroup %in% c('6','5'),
-                          scale=TRUE,
-                          grid.space = "fixed")
-```
+<!-- ```{r} -->
+<!-- gr5_markers <- nhood_markers[c("logFC_5", "adj.P.Val_5")] -->
+<!-- colnames(gr5_markers) <- c("logFC", "adj.P.Val") -->
+<!-- head(gr5_markers[order(gr5_markers$adj.P.Val), ]) -->
+<!-- ``` -->
 
-## DGE testing *within* a group
+<!-- If you already know you are interested only in the markers for group 2, you might want to test just 8-VS-all using the `subset.groups` parameter: -->
 
-In some cases you might want to test for differential expression between cells in different conditions *within* the same neighbourhood group. You can do that using `testDiffExp`:
+<!-- ```{r} -->
+<!-- nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = hvgs, -->
+<!--                                        aggregate.samples = TRUE, sample_col = "sample", -->
+<!--                                        subset.groups = c("5") -->
+<!--                                        ) -->
+<!-- head(nhood_markers) -->
+<!-- ``` -->
 
-```{r, warning=FALSE}
-dge_6 <- testDiffExp(milo, da_results, design = ~ stage, meta.data = data.frame(colData(milo)),
-                     subset.row = rownames(milo)[1:5], subset.nhoods=da_results$NhoodGroup=="6")
-dge_6
-```
+<!-- You might also want to compare a subset of neighbourhoods between each other. You can specify the neighbourhoods to use for testing by setting the parameter `subset.nhoods`. -->
+
+<!-- For example, you might want to compare just one pair of neighbourhood groups against each other: -->
+
+<!-- ```{r} -->
+<!-- nhood_markers <- findNhoodGroupMarkers(milo, da_results, subset.row = hvgs, -->
+<!--                                        subset.nhoods = da_results$NhoodGroup %in% c('5','6'), -->
+<!--                                        aggregate.samples = TRUE, sample_col = "sample") -->
+<!-- head(nhood_markers) -->
+<!-- ``` -->
+
+<!-- or you might use `subset.nhoods` to exclude singleton neighbourhoods, or to subset to the neighbourhoods that show significant DA. -->
+
+<!-- ## Visualize detected markers -->
+
+<!-- Lets select marker genes for group 10 at FDR 1% and log-fold-Change > 1. -->
+
+<!-- ```{r, dev="jpeg"} -->
+<!-- ggplot(nhood_markers, aes(logFC_5, -log10(adj.P.Val_5 ))) + -->
+<!--   geom_point(alpha=0.5, size=0.5) + -->
+<!--   geom_hline(yintercept = 3) -->
+<!-- markers <- rownames(nhood_markers)[nhood_markers$adj.P.Val_5 < 0.01 & nhood_markers$logFC_5 > 0] -->
+<!-- ``` -->
+
+<!-- We can visualize the expression in neighbourhoods using `plotNhoodExpressionGroups`. -->
+
+<!-- ```{r, fig.width=12, fig.height=7, dev="jpeg"} -->
+<!-- set.seed(42) -->
+<!-- plotNhoodExpressionGroups(milo, da_results, features=intersect(rownames(milo), markers[1:10]), -->
+<!--                           subset.nhoods = da_results$NhoodGroup %in% c('6','5'), -->
+<!--                           scale=TRUE, -->
+<!--                           grid.space = "fixed") -->
+<!-- ``` -->
+
+<!-- ## DGE testing *within* a group -->
+
+<!-- In some cases you might want to test for differential expression between cells in different conditions *within* the same neighbourhood group. You can do that using `testDiffExp`: -->
+
+<!-- ```{r, warning=FALSE} -->
+<!-- dge_6 <- testDiffExp(milo, da_results, design = ~ stage, meta.data = data.frame(colData(milo)), -->
+<!--                      subset.row = rownames(milo)[1:5], subset.nhoods=da_results$NhoodGroup=="6") -->
+<!-- dge_6 -->
+<!-- ``` -->
 
 
 <details>

@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Package
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(miloR) # compositional analysis
 library(here) # reproducible paths
 library(scater) # sc plots
@@ -206,9 +206,31 @@ da_results$celltype <- ifelse(da_results$celltype_fraction < 0.7, "Mixed", da_re
 
 Now we can visualize the distribution of DA Fold Changes in different cell types or clusters
 
-```{r, fig.height=7, fig.width=7, dev="jpeg"}
+```{r}
 plotDAbeeswarm(da_results, group.by = "celltype")
 plotDAbeeswarm(da_results, group.by = "clusters_named")
+```
+
+```{r}
+#save results
+saveRDS(da_results, here("processed", project, "da_results.rds"))
+```
+
+# Add Oligodendrocytes separate analysis
+
+For the oligodendroglia we computed the DA using the PCA reduction and a KNN graph exclusively computed for these cell types.
+We replace the oligo and opc neighboorhoods by those computed separetly.
+
+```{r}
+da_results_oligo <- readRDS(here("processed", project, "da_results_oligos.rds"))
+da_results <- da_results[!(da_results$celltype %in% c("Oligo", "OPCs")), ]
+da_results <- merge(da_results, da_results_oligo, all=TRUE)
+```
+
+
+```{r, fig.height=7, fig.width=7, dev="jpeg"}
+plotDAbeeswarm(da_results, group.by = "celltype") + scale_colour_distiller(direction = -1, palette = "RdBu")
+plotDAbeeswarm(da_results, group.by = "clusters_named") + scale_colour_distiller(direction = -1, palette = "RdBu")
 ```
 
 === from bellow, not modified tutorial
