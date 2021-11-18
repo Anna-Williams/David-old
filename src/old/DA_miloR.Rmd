@@ -180,15 +180,7 @@ tsne_pl <- plotReducedDim(milo, dimred = "TSNE", colour_by="genotype", text_by =
                           text_size = 3, point_size=0.5) +
   guides(fill="none")
 ## Plot neighbourhood graph
-# We want to colour by logFC with personalised colours
-# add this to the milo object (as it would do inside the plotNhoodGraphDA() function)
-signif_res <- da_results
-  signif_res[signif_res$SpatialFDR > 0.05,"logFC"] <- 0
-  colData(milo)[unlist(nhoodIndex(milo)[signif_res$Nhood]),"logFC"] <- signif_res[,"logFC"]
-
-nh_graph_pl <- plotNhoodGraph(milo, colour_by = "logFC",layout="TSNE" )  + scale_fill_gradient2(high = muted("red"), mid = "white", low = muted("blue"))
-#+ scale_fill_gradientn(colours = pals::coolwarm())
-#+ scale_fill_distiller(direction = -1, palette = "RdBu")#, limit= c(-6,6))
+nh_graph_pl <- plotNhoodGraphDA(milo, da_results, layout="TSNE",alpha=0.1) 
   
 tsne_pl + nh_graph_pl# +
  # plot_layout(guides="collect")
