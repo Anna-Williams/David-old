@@ -169,9 +169,9 @@ ggplot(da_results, aes(logFC, -log10(SpatialFDR))) +
   geom_hline(yintercept = 1) ## Mark significance threshold (10% FDR)
 ```
 
-The neighboorghoods with strong down regulation are the microglia. 
+The neighbourhoods with strong down regulation are the microglia. 
 
-To visualize DA results relating them to the embedding of single cells, we can build an abstracted graph of neighbourhoods that we can superimpose on the single-cell embedding. Here each node represents a neighbourhood, while edges indicate how many cells two neighbourhoods have in common. Here the layout of nodes is determined by the position of the index cell in the UMAP embedding of all single-cells. The neighbourhoods displaying singificant DA are coloured by their log-Fold Change.
+To visualize DA results relating them to the embedding of single cells, we can build an abstracted graph of neighbourhoods that we can superimpose on the single-cell embedding. Here each node represents a neighbourhood, while edges indicate how many cells two neighbourhoods have in common. Here the layout of nodes is determined by the position of the index cell in the UMAP embedding of all single-cells. The neighbourhoods displaying significant DA are coloured by their log-Fold Change.
 
 ```{r, fig.width=15, fig.height=8, dev="jpeg"}
 milo <- buildNhoodGraph(milo)
@@ -207,8 +207,8 @@ da_results$celltype <- ifelse(da_results$celltype_fraction < 0.7, "Mixed", da_re
 Now we can visualize the distribution of DA Fold Changes in different cell types or clusters
 
 ```{r}
-plotDAbeeswarm(da_results, group.by = "celltype")
-plotDAbeeswarm(da_results, group.by = "clusters_named")
+plotDAbeeswarm(da_results, group.by = "celltype") + scale_colour_distiller(direction = -1, palette = "RdBu")
+plotDAbeeswarm(da_results, group.by = "clusters_named") + scale_colour_distiller(direction = -1, palette = "RdBu")
 ```
 
 ```{r}
@@ -216,22 +216,8 @@ plotDAbeeswarm(da_results, group.by = "clusters_named")
 saveRDS(da_results, here("processed", project, "da_results.rds"))
 ```
 
-# Add Oligodendrocytes separate analysis
-
-For the oligodendroglia we computed the DA using the PCA reduction and a KNN graph exclusively computed for these cell types.
-We replace the oligo and opc neighboorhoods by those computed separetly.
-
-```{r}
-da_results_oligo <- readRDS(here("processed", project, "da_results_oligos.rds"))
-da_results <- da_results[!(da_results$celltype %in% c("Oligo", "OPCs")), ]
-da_results <- merge(da_results, da_results_oligo, all=TRUE)
-```
 
 
-```{r, fig.height=7, fig.width=7, dev="jpeg"}
-plotDAbeeswarm(da_results, group.by = "celltype") + scale_colour_distiller(direction = -1, palette = "RdBu")
-plotDAbeeswarm(da_results, group.by = "clusters_named") + scale_colour_distiller(direction = -1, palette = "RdBu")
-```
 
 === from bellow, not modified tutorial
 
