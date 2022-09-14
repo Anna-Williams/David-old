@@ -1,12 +1,15 @@
 ---
 title: "Compositional analysis with Milo"
 author: "Nadine Bestard"
-date: "02/11/2021"
-output: html_document
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+  
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, dev = c('pdf', 'png', 'tiff'), cache=TRUE)
 ```
 
 ## Package
@@ -31,7 +34,7 @@ sce <- readRDS(here("processed", project, "sce_anno_02.RDS"))
 
 # Visualize the data
 
-```{r, dev="jpeg"}
+```{r, dev="jpeg", cache=FALSE}
 plotReducedDim(sce, colour_by="genotype", dimred = "TSNE", text_by = "clusters_named") 
 ```
 
@@ -76,6 +79,7 @@ As well as $d$ and $k$, for sampling we need to define a few additional paramete
 - `refined`: indicates whether you want to use the sampling refinement algorithm, or just pick cells at random. The default and recommended way to go is to use refinement. The only situation in which you might consider using `random` instead, is if you have batch corrected your data with a graph based correction algorithm, such as [BBKNN](https://github.com/Teichlab/bbknn), but the results of DA testing will be suboptimal.
 
 ```{r}
+set.seed(1)
 milo <- makeNhoods(milo, prop = 0.1, k = 30, d=26, refined = TRUE, reduced_dims = "PCA")
 ```
 
@@ -83,7 +87,7 @@ Once we have defined neighbourhoods, we plot the distribution of neighbourhood s
 
 As a rule of thumb we want to have an average neighbourhood size over 5 x N_samples or to have a distribution peaking between 50 and 100. Otherwise you might consider rerunning makeNhoods increasing k and/or prop. In our case, 6 samples, an average of minimum 30 is expected, so we rerun makeNhood increasing k until we have an average of minimum 30 (5 x 6samples).
 
-```{r}
+```{r, cache=FALSE}
 plotNhoodSizeHist(milo)
 ```
 
@@ -157,13 +161,13 @@ da_results %>%
 We can start inspecting the results of our DA analysis from a couple of standard diagnostic plots. 
 We first inspect the distribution of uncorrected P values, to verify that the test was balanced.
 
-```{r}
+```{r, p-value}
 ggplot(da_results, aes(PValue)) + geom_histogram(bins=50)
 ```
 
 Then we visualize the test results with a volcano plot (remember that each point here represents a neighbourhood, _not_ a cell).
 
-```{r, dev="jpeg"}
+```{r spatialFDR}
 ggplot(da_results, aes(logFC, -log10(SpatialFDR))) + 
   geom_point() +
   geom_hline(yintercept = 1) ## Mark significance threshold (10% FDR)
@@ -173,14 +177,14 @@ The neighbourhoods with strong down regulation are the microglia.
 
 To visualize DA results relating them to the embedding of single cells, we can build an abstracted graph of neighbourhoods that we can superimpose on the single-cell embedding. Here each node represents a neighbourhood, while edges indicate how many cells two neighbourhoods have in common. Here the layout of nodes is determined by the position of the index cell in the UMAP embedding of all single-cells. The neighbourhoods displaying significant DA are coloured by their log-Fold Change.
 
-```{r, fig.width=15, fig.height=8, dev="jpeg"}
+```{r nhoodGraph, fig.width=15, fig.height=8}
 milo <- buildNhoodGraph(milo)
 ## Plot single-cell TSNE
 tsne_pl <- plotReducedDim(milo, dimred = "TSNE", colour_by="genotype", text_by = "clusters_named", 
                           text_size = 3, point_size=0.5) +
   guides(fill="none")
 ## Plot neighbourhood graph
-nh_graph_pl <- plotNhoodGraphDA(milo, da_results, layout="TSNE",alpha=0.1) + scale_fill_gradient2(high = scales::muted("red"), mid = "white", low = scales::muted("blue"))
+nh_graph_pl <- plotNhoodGraphDA(milo, da_results, layout="TSNE",alpha=0.1) +  scale_fill_gradient2(high = scales::muted("red"), mid = "white", low = scales::muted("blue"))
   
 tsne_pl + nh_graph_pl# +
  # plot_layout(guides="collect")
@@ -197,18 +201,19 @@ head(da_results)
 
 While neighbourhoods tend to be homogeneous, we can define a threshold for `celltype_fraction` to exclude neighbourhoods that are a mix of cell types. 
 
-```{r}
+```{r, cache=FALSE}
 ggplot(da_results, aes(clusters_named_fraction)) + geom_histogram(bins=50)
 ```
-```{r}
+```{r, cache=FALSE}
 da_results$celltype <- ifelse(da_results$celltype_fraction < 0.7, "Mixed", da_results$celltype)
 ```
 
 Now we can visualize the distribution of DA Fold Changes in different cell types or clusters
 
-```{r}
+```{r DAbeeswarm}
 plotDAbeeswarm(da_results, group.by = "celltype") + scale_colour_distiller(direction = -1, palette = "RdBu")
-plotDAbeeswarm(da_results, group.by = "clusters_named") + scale_colour_distiller(direction = -1, palette = "RdBu")
+plotDAbeeswarm(da_results, group.by = "clusters_named") +
+  scale_fill_gradient2(high = scales::muted("red"), mid = "white", low = scales::muted("blue"))
 ```
 
 ```{r}
@@ -219,7 +224,7 @@ saveRDS(da_results, here("processed", project, "da_results.rds"))
 
 
 
-=== from bellow, not modified tutorial
+<!-- === from bellow, not modified tutorial -->
 
 <!-- <!-- # Identifying signatures of DA subpopulations --> -->
 
