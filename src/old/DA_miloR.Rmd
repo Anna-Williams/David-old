@@ -29,7 +29,9 @@ This analysis have been done following the (MiloR vignette)[https://rawcdn.githa
 For this study we will load our processed single cell experiment 
 
 ```{r}
+
 project <- "old"
+source(here("src", project, "colours.R"))
 fig_path <- here("outs", project, "plots","DA_miloR", "/")
 sce <- readRDS(here("processed", project, "sce_anno_02.RDS"))
 ```
@@ -184,7 +186,7 @@ milo <- buildNhoodGraph(milo)
 ## Plot single-cell TSNE
 tsne_pl <- plotReducedDim(milo, dimred = "TSNE", colour_by="genotype", text_by = "clusters_named", 
                           text_size = 3, point_size=0.5) +
-  guides(fill="none")
+  guides(fill="none") + scale_color_manual(values = c(col_wt_ko[1],col_wt_ko[2])) + labs(color="genotype")
 ## Plot neighbourhood graph
 nh_graph_pl <- plotNhoodGraphDA(milo, da_results, layout="TSNE",alpha=0.1) +  scale_fill_gradient2(high = scales::muted("red"), mid = "white", low = scales::muted("blue"))
   
@@ -213,9 +215,11 @@ da_results$celltype <- ifelse(da_results$celltype_fraction < 0.7, "Mixed", da_re
 Now we can visualize the distribution of DA Fold Changes in different cell types or clusters
 
 ```{r DAbeeswarm, fig.path=fig_path}
-plotDAbeeswarm(da_results, group.by = "celltype")
+plotDAbeeswarm(da_results, group.by = "celltype") +
+  scale_colour_gradient2(high = scales::muted("red"), mid = "white", low = scales::muted("blue")) + xlab("")
 plotDAbeeswarm(da_results, group.by = "clusters_named") +
-  scale_fill_gradient2(high = scales::muted("red"), mid = "white", low = scales::muted("blue"))
+  scale_colour_gradient2(high = scales::muted("red"), mid = "white", low = scales::muted("blue")) + xlab("")
+
 ```
 
 ```{r}
