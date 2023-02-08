@@ -201,6 +201,11 @@ We might also be interested in visualizing wheather DA is particularly evident i
 da_results <- annotateNhoods(milo, da_results, coldata_col = "clusters_named")
 da_results <- annotateNhoods(milo, da_results, coldata_col = "celltype")
 head(da_results)
+
+# sort the order
+da_results$clusters_named <- factor(da_results$clusters_named, 
+                                    rev(c( "BAMs","Microglia","Gran & Mono","Lymphocytes","DCs","Astrocyte_1", "Astrocyte_2", "Astrocyte_3", "OligoAstro",  "OPCs","Oligo_1", "Oligo_2",  "Endothelial","fEndothelia","Mural_cells",  "Ependymocytes","OEG",  "ChP_epithelial", "iNeurons & NRPs", "mNeurons", "Mixed"
+)))
 ```
 
 While neighbourhoods tend to be homogeneous, we can define a threshold for `celltype_fraction` to exclude neighbourhoods that are a mix of cell types. 
