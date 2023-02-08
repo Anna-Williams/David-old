@@ -184,7 +184,7 @@ To visualize DA results relating them to the embedding of single cells, we can b
 ```{r nhoodGraph, fig.width=15, fig.height=8, fig.path=fig_path}
 milo <- buildNhoodGraph(milo)
 ## Plot single-cell TSNE
-tsne_pl <- plotReducedDim(milo, dimred = "TSNE", colour_by="genotype", text_by = "clusters_named", 
+tsne_pl <- plotReducedDim(milo, dimred = "TSNE", colour_by="genotype", 
                           text_size = 3, point_size=0.5) +
   guides(fill="none") + scale_color_manual(values = c(col_wt_ko[1],col_wt_ko[2])) + labs(color="genotype")
 ## Plot neighbourhood graph
