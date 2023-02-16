@@ -218,3 +218,15 @@ dir.create(here("outs", project, "DE_celltype", "plots"))
 ggsave(here("outs", project, "DE_celltype", "plots", "DE_celltypes.pdf"),
        height = 7, width = 10
 )
+
+## For the Main celltypes ###
+#load
+de_results <- readRDS(here("processed",project, "DE_results_ambient_edgeR_celltype.RDS"))
+#sort
+de_results <-  de_results[c( "Astrocyte", "OPCs","Oligo",  "Endothelial","Mural_cells")]
+#plot
+plotDEbyCluster(de_results, ambient=TRUE, ambient_threshold = 0.25) 
+dir.create(here("outs", project, "DE_celltype", "plots"))
+ggsave(here("outs", project, "DE_celltype", "plots", "DE_celltypes.pdf"),
+       height = 7, width = 10
+)
