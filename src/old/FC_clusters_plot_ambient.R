@@ -227,6 +227,6 @@ de_results <-  de_results[c( "Astrocyte", "OPCs","Oligo",  "Endothelial","Mural_
 #plot
 plotDEbyCluster(de_results, ambient=TRUE, ambient_threshold = 0.25) 
 dir.create(here("outs", project, "DE_celltype", "plots"))
-ggsave(here("outs", project, "DE_celltype", "plots", "DE_celltypes.pdf"),
+ggsave(here("outs", project, "DE_celltype", "plots", "DE_main_celltypes.pdf"),
        height = 7, width = 10
 )
